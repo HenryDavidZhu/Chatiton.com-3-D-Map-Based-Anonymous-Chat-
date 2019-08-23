@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+	</head>
+
+	<body>
+		<form id="login-form">
+			<input type="text" placeholder="username" min="5" max="50" id="username" />
+			<input type="number" placeholder="age" name="age" min="16" max="90" id="age" />
+			<input type="text" placeholder="short bio" min="50" max="175" id="bio"/>
+			<select id="sex">
+				<option value="male" selected>Male</option>
+				<option value="female">Female</option>
+			</select>
+			<input type="submit" value="Start Chatting!" />
+		</form>
+
+		<script src="js/formprocessor.js"></script>
+	</body>
+</html>
