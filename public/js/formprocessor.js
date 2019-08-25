@@ -8,5 +8,12 @@ $('#login-form').submit(function(e) {
     var bio = $("#bio").val();
     var age = $("#age").val();
     var sex = $("#sex").find(":selected").val();
+
+    // Retrieve the user's city
+	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function(data) {
+		console.log(data["city"]);
+	});	
+
+	// Send client data to server handler
     socket.emit("initializeUser", [username, age, bio, sex]);
 });
