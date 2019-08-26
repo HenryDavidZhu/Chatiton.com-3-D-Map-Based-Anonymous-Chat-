@@ -11,9 +11,7 @@ $('#login-form').submit(function(e) {
 
     // Retrieve the user's city
 	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function(data) {
-		console.log(data["city"]);
+		var city = data["city"];
+		socket.emit("initializeUser", [username, age, bio, sex, city]); // Send client data to server handler
 	});	
-
-	// Send client data to server handler
-    socket.emit("initializeUser", [username, age, bio, sex]);
 });
