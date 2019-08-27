@@ -32,7 +32,7 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
 
         var clients = this.mapping[city];
         for (var client in clients) {
-            console.log("client: " + client);
+            console.log("client: " + client.username);
         }
 
         console.log("");
@@ -57,6 +57,7 @@ function userConnect(user) {
 
         // Initialize new client
         var client = new Client(username, age, shortBio, sex, city);
+        console.log(client.username + " joined the system!");
 
         // Map the client to its city in the system's mapping
         if (system.mapping[city]) {
