@@ -11,8 +11,8 @@ html, body {
 #map {
 	position: absolute;
 	top: 0;
-	left: 0;
-	width: 100%;
+	left: 400px;
+	width: calc(100% - 400px);
 	height: 100%;
 	z-index: -1;
 }

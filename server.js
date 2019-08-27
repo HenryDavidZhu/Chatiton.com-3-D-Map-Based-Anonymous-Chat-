@@ -31,7 +31,8 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
         console.log("city = " + city);
 
         var clients = this.mapping[city];
-        for (var client in clients) {
+        for (var i = 0; i < clients.length; i++) {
+            var client = clients[i];
             console.log("client: " + client.username);
         }
 
@@ -39,7 +40,15 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
     }
 }
 
-function ChatController() {
+System.prototype.returnCitySizes = function(cityList) {
+    var citySizes = {};
+
+    for (var i = 0; i < cityList.length; i++) { 
+        var city = cityList[i];
+        citySizes[city] = this.mapping[city].length;
+    }
+
+    return citySizes;
 }
 
 var system = new System();
@@ -57,7 +66,6 @@ function userConnect(user) {
 
         // Initialize new client
         var client = new Client(username, age, shortBio, sex, city);
-        console.log(client.username + " joined the system!");
 
         // Map the client to its city in the system's mapping
         if (system.mapping[city]) {
