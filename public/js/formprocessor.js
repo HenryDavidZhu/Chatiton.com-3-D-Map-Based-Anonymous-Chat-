@@ -1,5 +1,7 @@
 // Send user data to the server
 var socket = io.connect(); // Initializes the socket
+var lat;
+var long;
 
 function getCoordinates() { 
 // Obtains [lat, long] of a user
@@ -12,8 +14,8 @@ function getCoordinates() {
 
 function returnCoordinates(position) { 
 	// Retrieves the user's coordinates and zooms into the user's location on the map
-	var lat = position.coords.latitude
-	var long = position.coords.longitude;
+	lat = position.coords.latitude
+	long = position.coords.longitude;
 
 	console.log("lat = " + lat + ", long = " + long);
 
@@ -39,6 +41,9 @@ $('#login-form').submit(function(e) {
 
     // JUST FOR TESTING PURPOSES RN
     socket.emit("initializeUser", [username, age, bio, sex, "Bellevue"]); // Send client data to server handler
+
+    // Fade out login menu
+    $("#login-wrapper").fadeOut();
 
     // Retrieve the user's city
 	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function(data) {

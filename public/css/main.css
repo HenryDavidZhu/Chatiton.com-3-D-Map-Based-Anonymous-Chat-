@@ -14,7 +14,6 @@ html, body {
 	left: 400px;
 	width: calc(100% - 400px);
 	height: 100%;
-	z-index: -1;
 }
 
 /* Chatbox Styling */
@@ -26,7 +25,6 @@ html, body {
 	max-width: 400px;
 	height: 100%;
 	background-color: rgba(255, 255, 255, 1);
-	z-index: 4;
 	padding: 0;
 	margin: 0;
 	font-family: Helvetica, serif;
