@@ -3,6 +3,10 @@ var socket = io.connect(); // Initializes the socket
 var lat;
 var long;
 
+socket.on('connect', function() {
+    console.log(io().id);
+}); 
+
 function getCoordinates() { 
 // Obtains [lat, long] of a user
   if (navigator.geolocation) {
@@ -49,4 +53,6 @@ $('#login-form').submit(function(e) {
 	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function(data) {
 		var city = data["city"];
 	});	
+
+	socket.emit("getCitySizes", ["Bellevue"]);
 });

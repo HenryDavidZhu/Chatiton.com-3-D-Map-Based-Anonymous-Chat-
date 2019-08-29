@@ -1,10 +1,12 @@
+// Mapping of cities to the number of active users in that city
+var cityMap = {}; 
+
 // Retrieve the bounding coordinates of the user's current area
 var canvas = map.getCanvasContainer();
 var bbox = canvas.getBoundingClientRect();
 var transformedBBox = [[bbox.left, bbox.top], [bbox.right, bbox.bottom]];
-console.log("bbox = " + transformedBBox);
-console.log("map = " + map);
 
+// Draw a marker to indicate the user's current location
 map.on('style.load', function (e) {
     map.addSource('markers', {
         "type": "geojson",
@@ -36,7 +38,18 @@ map.on('style.load', function (e) {
     });
 });
 
+// Get the number of users within each of the cities in the user's current area
+
 // Retrieve the cities within the user's current area;
-var features = map.queryRenderedFeatures(bbox, {layers: ['cities']});
+var features = map.queryRenderedFeatures();
 console.log("features = " + features);
 
+// Listen for when the server returns the updated list of cities w/ updated user counts
+socket.on("returnCityData", updateCityData);
+
+// Update the city mapping
+function updateCityData(updatedCityMap) {
+	alert("Received returnCityData");
+	cityMap = updatedCityMap;
+	console.log("updated city map = " + cityMap);
+}
