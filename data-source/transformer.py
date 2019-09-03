@@ -1,41 +1,39 @@
 import json
+import re
 
 with open("cities.json", encoding="utf-8") as jsonFile:
     data = json.load(jsonFile)
-    geojson = {
-        "type": "FeatureCollection",
-        "features": [
-        {
-            "type": "Feature",
-            "geometry" : {
-                "type": "Point",
-                "coordinates": [d["lng"], d["lat"]],
-                },
-            "properties" : d,
-         } for d in data]
-    }
-    output = open("cities.geojson", "w")
-    json.dump(geojson, output)
+    print(len(data))
 
-"""from sys import argv
-from os.path import exists
-import simplejson as json 
+    features = []
 
-data = json.load(open("cities.json"), errors="ignore")
+    for i in range(0, len(data)):
+        inputSet = data[i]
 
-geojson = {
-    "type": "FeatureCollection",
-    "features": [
-    {
-        "type": "Feature",
-        "geometry" : {
-            "type": "Point",
-            "coordinates": [d["lng"], d["lat"]],
+        feature = {
+            'type': 'Feature',
+            'geometry' : {
+                'type' : 'Point',
+                'coordinates' : [float(inputSet['lng']), float(inputSet['lat'])]
             },
-        "properties" : d,
-     } for d in data]
-}
+            'properties' : {
+                'country' : inputSet['country'].replace('"','\\"'),
+                'city' : inputSet['name'].replace("'", "%")
+            }
+        }
 
-output = open("cities.geojson", 'w')
-json.dump(geojson, output)
-print(geojson)"""
+        features.append(feature)
+        
+    geojson = {
+        'type': 'FeatureCollection',
+        'features': features
+    }
+
+    outputString = str(geojson)
+    outputString = outputString.replace("'","\"")
+    outputString = outputString.replace("%", "'")
+    
+    with open("cities.geojson", mode="w", encoding="utf-8") as output:
+        output.write(outputString)
+
+print("Done")
