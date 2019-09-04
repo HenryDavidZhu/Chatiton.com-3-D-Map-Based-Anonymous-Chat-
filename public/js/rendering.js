@@ -9,8 +9,11 @@ var transformedBBox = [[bbox.left, bbox.top], [bbox.right, bbox.bottom]];
 map.on('style.load', function (e) {
 	// Parse in the cities GeoJSON dataset
 	map.addSource('cities', {
-		"type": "vector",
-		"url": "mapbox://henrydavidzhu.6colruq5"
+		"type": "geojson",
+		"data": "/data-source/cities.geojson",
+    	"cluster":  true,
+    	"clusterMaxZoom": 14,
+    	"clusterRadius": 80
 	});
 
 	// Draw a marker to indicate the user's current location
@@ -43,18 +46,17 @@ map.on('style.load', function (e) {
         "filter": ["==", "modelId", 1],
     });
 
+    // This renders the ghost layer: contains every city in the world
+    // Marks all cities (both cities with no users and cities with active users)
     map.addLayer({
 		"id": "cities",
 		"type": "circle",
 		"source": "cities",
-		"source-layer": "cities-1t5ol3",
 		"paint": {
-            "circle-radius": 5,
-            "circle-color": "#33cc33",
-            "circle-opacity": 0.5,
-            "circle-stroke-width": 0,
+            "circle-radius": 6,
+            "circle-color": "#ff6666"
 		}
-	}, 'settlement-label'); // Place polygon under these labels.
+	}, 'settlement-label');
 });
 
 // Get the number of users within each of the cities in the user's current area
