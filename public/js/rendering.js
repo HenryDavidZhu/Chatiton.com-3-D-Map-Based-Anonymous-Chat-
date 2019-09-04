@@ -54,16 +54,31 @@ map.on('style.load', function (e) {
 		"source": "cities",
 		"paint": {
             "circle-radius": 6,
-            "circle-color": "#ff6666"
+            "circle-color": "#ff6666",
+            "circle-opacity": 0
 		}
 	}, 'settlement-label');
 });
 
-// Get the number of users within each of the cities in the user's current area
+// Attach a listener to get the number of users within each of the cities in the user's current area
+map.on("moveend", onMoveEnd);
+function onMoveEnd(event) {
+	var cityList = map.queryRenderedFeatures({layers: ["cities"]});
+	var cityNames = [];
+
+	for (var i = 0; i < cityList.length; i++) {
+		// Format of cityName : city/long/lat (TODO: check if long and lat are in the right order)
+		var cityName = cityList[i];
+		cityNames.push(cityName.properties.city + "/" + cityName.geometry.coordinates[0].toFixed(2) + "/" + cityName.geometry.coordinates[1].toFixed(2));
+	}
+
+	console.log("cityNames = " + cityNames);
+	// Send request to server to retrieve number of active users for each city
+	//socket.emit("cityRetrieval", cityNames);
+}
 
 // Retrieve the cities within the user's current area;
-var features = map.queryRenderedFeatures();
-console.log("features = " + features);
+
 
 // Listen for when the server returns the updated list of cities w/ updated user counts
 socket.on("returnCityData", updateCityData);
