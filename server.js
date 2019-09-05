@@ -27,6 +27,7 @@ function System() {
 }
 
 System.prototype.monitorSystem = function() { // Output mapping of cities to active users (for debugging purposes)
+    console.log("Chatiton System Monitor")
     for (var city in this.mapping) {
         console.log("city = " + city);
 
