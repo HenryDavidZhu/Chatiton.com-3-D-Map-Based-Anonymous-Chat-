@@ -12,6 +12,7 @@ with open("cities.json", encoding="utf-8") as jsonFile:
 
         feature = {
             'type': 'Feature',
+            'id': i,
             'geometry' : {
                 'type' : 'Point',
                 'coordinates' : [float(inputSet['lng']), float(inputSet['lat'])]

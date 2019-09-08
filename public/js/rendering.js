@@ -1,34 +1,21 @@
 // Mapping of cities to the number of active users in that city
 var cityMap = {};
 
-// Retrieve the bounding coordinates of the user's current area
-var canvas = map.getCanvasContainer();
-var bbox = canvas.getBoundingClientRect();
-var transformedBBox = [
-	[bbox.left, bbox.top],
-	[bbox.right, bbox.bottom]
-];
-
-// A list of all of the cities/city clusters in the user's current view
-var cityNames = [];
+// A mapping of all of the cities/city clusters in the user's current view {city id : Feature Object}
+var cityNames = {};
 
 // User coordinates
 var userLong = 0;
 var userLat = 0;
 
-// Get the user's latitude and longitude
-// Retrieve the user's city
-$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
-	userLong = data["longitude"];
-	userLat = data["latitude"];
-});
+// The coordinates of the user's city
+var cityLong = 0;
+var cityLat = 0;
+
+// Has flyTo been completed?
+var flying = true;
 
 map.on('style.load', function (e) {
-	// Fly to the user's location
-	map.flyTo({
-		center: [userLong, userLat]
-	});
-	
 	// Parse in the cities GeoJSON dataset
 	map.addSource('cities', {
 		"type": "geojson",
@@ -38,36 +25,6 @@ map.on('style.load', function (e) {
 		"clusterRadius": 80
 	});
 
-	// Draw a marker to indicate the user's current location
-	map.addSource('markers', {
-		"type": "geojson",
-		"data": {
-			"type": "FeatureCollection",
-			"features": [{
-				"type": "Feature",
-				"geometry": {
-					"type": "Point",
-					"coordinates": [userLong, userLat]
-				},
-				"properties": {
-					"modelId": 1,
-				},
-			}]
-		}
-	});
-	map.addLayer({
-		"id": "circles1",
-		"source": "markers",
-		"type": "circle",
-		"paint": {
-			"circle-radius": 15,
-			"circle-color": "#33adff",
-			"circle-opacity": 0.5,
-			"circle-stroke-width": 0,
-		},
-		"filter": ["==", "modelId", 1],
-	});
-
 	// This renders the ghost layer: contains every city in the world
 	// Marks all cities (both cities with no users and cities with active users)
 	map.addLayer({
@@ -75,25 +32,56 @@ map.on('style.load', function (e) {
 		"type": "circle",
 		"source": "cities",
 		"paint": {
-			"circle-radius": 6,
-			"circle-color": "#ff6666",
-			"circle-opacity": 0.3
+			"circle-radius": 
+				["case",
+				["boolean", ["feature-state", "userCity"], false],
+				14,
+				9],
+			"circle-color": 
+				["case",
+				["boolean", ["feature-state", "userCity"], false],
+				"#33adff",
+				"#ff6666"
+			],
+			"circle-opacity": 
+				["case",
+				["boolean", ["feature-state", "userCity"], false],
+				0.6,
+				0.85]
 		}
 	}, 'settlement-label');
+
+	// Get the user's latitude and longitude
+	// Retrieve the user's city
+	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
+		userLong = data["longitude"];
+		userLat = data["latitude"];
+
+		// Fly to the user's location
+		flying = true;
+		map.flyTo({
+			center: [userLong, userLat]
+		});
+
+		map.on('moveend', function(e){
+			flying = false;
+		});
+	});
+	//console.log("Done flying to location");
 });
 
 function updateCityNames() {
 	var cityList = map.queryRenderedFeatures({
 		layers: ["cities"]
 	});
-	cityNames = [];
+	cityNames = {};
 
 	for (var i = 0; i < cityList.length; i++) {
 		// Format of cityName : city/long/lat (TODO: check if long and lat are in the right order)
 		var cityName = cityList[i];
 
 		if (cityName.properties.city) { // Only push in defined cities to the cityNames
-			cityNames.push(cityName.properties.city);
+			cityNames[cityName.properties.city] = cityName;
 		}
 	}
 }

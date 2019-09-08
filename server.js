@@ -42,15 +42,16 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
 }
 
 System.prototype.returnCitySizes = function(cityList) {
-    console.log("this.mapping[Bellevue] = " + this.mapping["Bellevue"]);
+    // Returns a dictionary mapping each city id to the number of active users in that city
     var citySizes = {};
 
     for (var i = 0; i < cityList.length; i++) { 
         var city = cityList[i];
-        citySizes[city] = this.mapping[city].length;
-    }
 
-    console.log("updated citySizes[Bellevue] = " + citySizes["Bellevue"]);
+        if (city in this.mapping) { // See if any active users are in the city
+            citySizes[city] = this.mapping[city].length; // Update the number of active users in the city
+        }
+    }
     return citySizes;
 }
 
@@ -84,7 +85,6 @@ function userConnect(user) {
 
     function getCitySizes(cityList) {
         var updatedCityList = system.returnCitySizes(cityList);
-        console.log("updatedCityList[Bellevue] = " + updatedCityList["Bellevue"] + ", user.id = " + user.id);
         io.to(user.id).emit("returnCityData", updatedCityList);
     }
 }
