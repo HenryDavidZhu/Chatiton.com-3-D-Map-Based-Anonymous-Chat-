@@ -17,8 +17,13 @@ checkGeolocation();
 socket.on("returnCityData", downloadCityData);
 
 function downloadCityData(cityMapping) {
-	for (city in cityMapping) {
-		console.log("cityMapping[" + city + "] = " + cityMapping[city]);
+	// Updates the sizes/colour of the city circles based on how many active users are in the city
+	for (cityName in cityMapping) {
+		var cityId = parseInt(cityName.split("-")[1]);
+		console.log(cityName + ".numUsers >" + cityMapping[cityName]);
+		console.log(typeof cityId);
+		console.log(typeof cityMapping[cityName]);
+		map.setFeatureState({source: "cities", id : cityId}, {numUsers : cityMapping[cityName]});
 	}
 }
 
@@ -99,9 +104,6 @@ $('#login-form').submit(function(e) {
 			socket.emit("cityUpdate", cityKeyToUpdate);
 
 			var cityId = parseInt(cityKeyToUpdate.split("-")[1]);
-
-			// Highlight the city the user is in
-			map.setFeatureState({source: 'cities', id : cityId}, {userCity: true});
 
 			// Create a popup, but don't add it to the map yet.
 			var popup = new mapboxgl.Popup({

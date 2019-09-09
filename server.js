@@ -42,6 +42,7 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
 }
 
 System.prototype.returnCitySizes = function(cityList) {
+    console.log("");
     // Returns a dictionary mapping each city id to the number of active users in that city
     var citySizes = {};
 
@@ -50,6 +51,7 @@ System.prototype.returnCitySizes = function(cityList) {
 
         if (city in this.mapping) { // See if any active users are in the city
             citySizes[city] = this.mapping[city].length; // Update the number of active users in the city
+            console.log("citySizes[" + city + "] = " + citySizes[city]);
         }
     }
     return citySizes;
@@ -84,7 +86,8 @@ function userConnect(user) {
     user.on("getCitySizes", getCitySizes);
 
     function getCitySizes(cityList) {
-        var updatedCityList = system.returnCitySizes(cityList);
-        io.to(user.id).emit("returnCityData", updatedCityList);
+        console.log("getting city sizes for:\n" + cityList);
+        var cityMapping = system.returnCitySizes(cityList);
+        io.to(user.id).emit("returnCityData", cityMapping);
     }
 }

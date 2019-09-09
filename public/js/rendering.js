@@ -32,22 +32,13 @@ map.on('style.load', function (e) {
 		"type": "circle",
 		"source": "cities",
 		"paint": {
-			"circle-radius": 
-				["case",
-				["boolean", ["feature-state", "userCity"], false],
-				14,
-				9],
-			"circle-color": 
-				["case",
-				["boolean", ["feature-state", "userCity"], false],
-				"#33adff",
-				"#ff6666"
-			],
-			"circle-opacity": 
-				["case",
-				["boolean", ["feature-state", "userCity"], false],
-				0.6,
-				0.85]
+			"circle-color": { 
+				property: 'numUsers',
+				stops: [
+					[0, '#ff6666'],
+					[1, '#33ff33']
+				]
+			}
 		}
 	}, 'settlement-label');
 

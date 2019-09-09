@@ -19,7 +19,8 @@ with open("cities.json", encoding="utf-8") as jsonFile:
             },
             'properties' : {
                 'country' : inputSet['country'].replace('"','\\"'),
-                'city' : inputSet['name'].replace("'", "%") + "-" + str(i)
+                'city' : inputSet['name'].replace("'", "%") + "-" + str(i),
+                'numUsers': 0
             }
         }
 
