@@ -43,15 +43,15 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
 
 System.prototype.returnCitySizes = function(cityList) {
     console.log("");
-    // Returns a dictionary mapping each city id to the number of active users in that city
+    // Returns a dictionary mapping each city id to the list of active users in that city
     var citySizes = {};
 
     for (var i = 0; i < cityList.length; i++) { 
         var city = cityList[i];
 
         if (city in this.mapping) { // See if any active users are in the city
-            citySizes[city] = this.mapping[city].length; // Update the number of active users in the city
-            console.log("citySizes[" + city + "] = " + citySizes[city]);
+            citySizes[city] = this.mapping[city]; // Update the list of active users in the city
+            console.log("citySizes[" + city + "] has " + citySizes[city].length + " active users.");
         }
     }
     return citySizes;

@@ -1,5 +1,18 @@
+/*
+2 API Testing Keys:
+If one of them doesn't work, switch to the other. If both don't work, wait 5 minutes
+for the API keys to recharge, and plug in the one that works (you can test out if an API key
+works by going to your browser and entering the API links below):
+
+1. https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059
+2. https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6
+*/
+
 // Mapping of cities to the number of active users in that city
 var cityMap = {};
+
+// Maps a city id to a list of the active users in that city
+var cityUserList = {};
 
 // A mapping of all of the cities/city clusters in the user's current view {city id : Feature Object}
 var cityNames = {};
@@ -25,26 +38,36 @@ map.on('style.load', function (e) {
 		"clusterRadius": 80
 	});
 
-	// This renders the ghost layer: contains every city in the world
-	// Marks all cities (both cities with no users and cities with active users)
+	// 
 	map.addLayer({
 		"id": "cities",
 		"type": "circle",
 		"source": "cities",
 		"paint": {
-			"circle-color": { 
-				property: 'numUsers',
-				stops: [
-					[0, '#ff6666'],
-					[1, '#33ff33']
-				]
-			}
-		}
-	}, 'settlement-label');
+			"circle-color": [ 
+		    "case",
+		    	["==", ["feature-state", "numUsers"], null], "#ff4d4d",
+				[">=", ["feature-state", "numUsers"], 1], "#33cc33",
+				"#ff4d4d"
+		    ],
+			"circle-radius": [ 
+			    "case",
+			    	["==", ["feature-state", "numUsers"], null], 9,
+					[">=", ["feature-state", "numUsers"], 1], 12,
+					6
+			    ],
+			"circle-opacity" : [
+				"case",
+					["==", ["feature-state", "numUsers"], null], 0.7,
+					[">=", ["feature-state", "numUsers"], 1], 1,
+					0.7
+			]
+		},
+	});
 
 	// Get the user's latitude and longitude
 	// Retrieve the user's city
-	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
+	$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function (data) {
 		userLong = data["longitude"];
 		userLat = data["latitude"];
 

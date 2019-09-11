@@ -1,3 +1,13 @@
+/*
+2 API Testing Keys:
+If one of them doesn't work, switch to the other. If both don't work, wait 5-10 minutes
+for the API keys to recharge, and plug in the one that works (you can test out if an API key
+works by going to your browser and entering the API links below):
+
+1. https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059
+2. https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6
+*/
+
 // Send user data to the server
 var socket = io.connect(); // Initializes the socket
 
@@ -23,8 +33,16 @@ function downloadCityData(cityMapping) {
 		console.log(cityName + ".numUsers >" + cityMapping[cityName]);
 		console.log(typeof cityId);
 		console.log(typeof cityMapping[cityName]);
-		map.setFeatureState({source: "cities", id : cityId}, {numUsers : cityMapping[cityName]});
+
+		if (cityMapping[cityName] > 0) {
+			console.log("cityName = " + cityName + ", cityMapping[" + cityName + "] = " + cityMapping[cityName].length);
+			cityMap[cityName] = cityMapping[cityName].length;
+		}
+		map.setFeatureState({source: "cities", id : cityId}, {numUsers : cityMapping[cityName].length});
 	}
+
+	// Download the updated city mapping
+	cityUserList = cityMapping;
 }
 
 $('#login-form').submit(function(e) {
@@ -33,6 +51,9 @@ $('#login-form').submit(function(e) {
 	if (flying) {
 		alert("Wait until flyTo has finished.");
 	} else {
+		// Fade in the chat panel
+		$("#chat-menu").fadeIn();
+
 		// Retrieve user information
 	    var username = $("#username").val();
 	    var bio = $("#bio").val();
@@ -43,7 +64,7 @@ $('#login-form').submit(function(e) {
 	    $("#login-wrapper").fadeOut();
 
 	    // Retrieve the user's city
-		$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function(data) {
+		$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function(data) {
 			var city = data["city"];
 			var cityKeyToUpdate = "";
 			updateCityNames();
@@ -112,11 +133,32 @@ $('#login-form').submit(function(e) {
 			});
 			 
 			map.on('mouseenter', 'cities', function(e) {
-				var popupCoordinates = [e.lngLat.lng, e.lngLat.lat];
+				var cityId = e.features[0].properties.city;
+				var listOfUsers = cityUserList[cityId];
 
+				// Retrieve the number of active users in the city
+				var userCount = 0;
+				if (listOfUsers) {
+					userCount = listOfUsers.length;
+				}
+
+				// Display popup onto map
+				var popupCoordinates = [e.lngLat.lng, e.lngLat.lat];
 				popup.setLngLat(popupCoordinates)
-					.setHTML("There are no active users here.")
+					.setHTML("There are " + userCount + " active user(s) here.")
 					.addTo(map);
+
+				// Shift the tab from "Chats" to "City"
+				$("#chat-button").removeClass("active");
+				$("#city-button").addClass("active");
+
+				// Populate the city tab with the list of users in that city
+				$("#city-list").empty();
+				for (var i = 0; i < listOfUsers.length; i++) {
+					var user = listOfUsers[i];
+					$("#city-list").append("<div class='user-panel'><div class='user-profile'><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>" + 
+						"<div class='initiate'><i class='far fa-comment-dots'></i></div></div>")
+				}
 			});
 			 
 			map.on('mouseleave', 'cities', function() {
