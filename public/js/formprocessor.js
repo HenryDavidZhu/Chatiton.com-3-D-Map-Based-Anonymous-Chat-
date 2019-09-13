@@ -8,26 +8,21 @@ works by going to your browser and entering the API links below):
 2. https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6
 */
 
-// Send user data to the server
 var socket = io.connect(); // Initializes the socket
 
 // Checks if a user has geolocation enabled on their browser
 function checkGeolocation() { 
+	// If a user does not have geolocation enabled, pop up an error Message
 	if (!navigator.geolocation) {
-		locationError();
+		alert("Geolocation is not working on your browser. You must enable geolocation to use chatiton.com.");
 	}
 }
-
-function locationError() {
-	alert("Geolocation is not working on your browser. You must enable geolocation to use chatiton.com.");
-}
-
 checkGeolocation();
 
 socket.on("returnCityData", downloadCityData);
 
 function downloadCityData(cityMapping) {
-	// Updates the sizes/colour of the city circles based on how many active users are in the city
+	/* Updates the sizes/colour of the city circles based on how many active users are in the city
 	for (cityName in cityMapping) {
 		var cityId = parseInt(cityName.split("-")[1]);
 		console.log(cityName + ".numUsers >" + cityMapping[cityName]);
@@ -39,7 +34,8 @@ function downloadCityData(cityMapping) {
 			cityMap[cityName] = cityMapping[cityName].length;
 		}
 		map.setFeatureState({source: "cities", id : cityId}, {numUsers : cityMapping[cityName].length});
-	}
+	}*/
+	renderCitySizes(cityMapping);
 
 	// Download the updated city mapping
 	cityUserList = cityMapping;
@@ -154,10 +150,13 @@ $('#login-form').submit(function(e) {
 
 				// Populate the city tab with the list of users in that city
 				$("#city-list").empty();
-				for (var i = 0; i < listOfUsers.length; i++) {
-					var user = listOfUsers[i];
-					$("#city-list").append("<div class='user-panel'><div class='user-profile'><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>" + 
-						"<div class='initiate'><i class='far fa-comment-dots'></i></div></div>")
+
+				if (listOfUsers) { // See if there are any users in the city
+					for (var i = 0; i < listOfUsers.length; i++) {
+						var user = listOfUsers[i];
+						$("#city-list").append("<div class='user-panel'><div class='user-profile'><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>" + 
+							"<div class='initiate'><i class='far fa-comment-dots'></i></div></div>")
+					}
 				}
 			});
 			 
@@ -174,4 +173,22 @@ $('#login-form').submit(function(e) {
 			socket.emit("getCitySizes", Object.keys(cityNames));
 		});	
 	}
+});
+
+// Switch from chat view to city view
+$("#city-button").click(function() {
+	// Update the tab/menu displays
+	$("#chat-button").removeClass("active");
+	$("#chat-list").css("display", "none");
+	$("#city-button").addClass("active");
+	$("#city-list").css("display", "block");
+});
+
+// Switch from city view to chat view
+$("#chat-button").click(function() {
+	// Update the tab/menu displays
+	$("#city-button").removeClass("active");
+	$("#city-list").css("display", "none");
+	$("#chat-button").addClass("active");
+	$("#chat-list").css("display", "block");
 });

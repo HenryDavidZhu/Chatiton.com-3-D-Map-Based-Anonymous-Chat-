@@ -9,7 +9,7 @@
 		<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
 		<script src='https://kit.fontawesome.com/a076d05399.js'></script>
-		<link href="https://fonts.googleapis.com/css?family=Cormorant+Garamond&display=swap" rel="stylesheet">
+		<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.js'></script>
 		<link rel="stylesheet" href="css/main.css" />
 	</head>
 
@@ -41,17 +41,8 @@
 
 		<div id="map"></div>
 
-		<script>
-			var socket = io.connect();
-			
-			mapboxgl.accessToken = 'pk.eyJ1IjoiaGVucnlkYXZpZHpodSIsImEiOiJjam9jazY5dDAyZWZlM2tzMWcyeWg3aHl3In0.vWVkmwbs8r60t2FXCfeQ3g';
-			var map = new mapboxgl.Map({
-				container: 'map',
-				style: 'mapbox://styles/mapbox/dark-v10',
-				zoom: 11
-			});
-		</script>
-		<script src="Js/rendering.js"></script>
+		<script src="js/rendering_init.js"></script>
+		<script src="js/rendering.js"></script>
 		<script src="js/formprocessor.js"></script>
 	</body>
 </html>

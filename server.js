@@ -1,4 +1,4 @@
-// Import required utilities (express, socketio, uniqid, SortedMap)
+// Import required utilities (express, socketio, uniqid, mongo)
 var express = require("express");
 var socket = require("socket.io");
 var uniqid = require("uniqid");
@@ -10,11 +10,8 @@ app.use(express.static("public", {
     dotfiles: 'allow'
 }));
 
-var io = socket(server, { pingTimeout: 63000 }); // Automatically disconnect user after 63s of inactivity
-io.sockets.on("connection", userConnect); // Listen for user connection
-
+// Defines a connected user, given the following properties: username, age, shortBio, sex, city
 function Client(username, age, shortBio, sex, city) {
-    // Download user attributes
     this.username = username;
     this.age = age;
     this.shortBio = shortBio;
@@ -22,19 +19,20 @@ function Client(username, age, shortBio, sex, city) {
     this.city = city;
 }
 
+// System: contains all networking logic and data for the site
 function System() {
-    this.mapping = {}; // Maps a city to a list of active users in that city
+    this.mapping = {}; // Maps a city to a list of active users (Client object) in that city ([city name] > [Client1, Client2, .... Client N])
 }
 
-System.prototype.monitorSystem = function() { // Output mapping of cities to active users (for debugging purposes)
-    console.log("Chatiton System Monitor")
-    for (var city in this.mapping) {
-        console.log("city = " + city);
+// Output mapping of cities to active users (for debugging purposes)
+System.prototype.monitorSystem = function() { 
+    for (var city in this.mapping) { // Iterate through every city in the mapping
+        console.log("City - " + city); 
+        var clients = this.mapping[city]; // Get the list of active users (Client objects) in that city
 
-        var clients = this.mapping[city];
-        for (var i = 0; i < clients.length; i++) {
+        for (var i = 0; i < clients.length; i++) { // Iterate through every client in the city
             var client = clients[i];
-            console.log("client: " + client.username);
+            console.log("client: " + client.username); 
         }
 
         console.log("");
@@ -42,28 +40,30 @@ System.prototype.monitorSystem = function() { // Output mapping of cities to act
 }
 
 System.prototype.returnCitySizes = function(cityList) {
+    // Returns a dictionary mapping each city name in cityList to the list of active users in that city
     console.log("");
-    // Returns a dictionary mapping each city id to the list of active users in that city
+    
     var citySizes = {};
 
-    for (var i = 0; i < cityList.length; i++) { 
+    for (var i = 0; i < cityList.length; i++) { // Iterate through every city's name in the list
         var city = cityList[i];
 
         if (city in this.mapping) { // See if any active users are in the city
             citySizes[city] = this.mapping[city]; // Update the list of active users in the city
-            console.log("citySizes[" + city + "] has " + citySizes[city].length + " active users.");
         }
     }
     return citySizes;
 }
 
-var system = new System();
+var system = new System(); // Initialize the site's networking system
+var io = socket(server, { pingTimeout: 63000 }); // Automatically disconnect user after 63s of inactivity
+io.sockets.on("connection", userConnect); // Listen for user connection
 
 function userConnect(user) {
-    user.on("initializeUser", connectUser); 
+    user.on("initializeUser", connectUser); // When a user submits their profile form, initialize the user into the system
 
     function connectUser(userInfo) {
-    	// Format of user information: [username, short biography, sex]
+        // Retrieve the user's information: username, age, shortBio, sex, and the city the user is in
     	var username = userInfo[0];
     	var age = userInfo[1];
     	var shortBio = userInfo[2];
@@ -86,8 +86,8 @@ function userConnect(user) {
     user.on("getCitySizes", getCitySizes);
 
     function getCitySizes(cityList) {
-        console.log("getting city sizes for:\n" + cityList);
-        var cityMapping = system.returnCitySizes(cityList);
+        // Return to the requesting client the cityMapping ([city name] > [number of active users])
+        var cityMapping = system.returnCitySizes(cityList); 
         io.to(user.id).emit("returnCityData", cityMapping);
     }
 }
