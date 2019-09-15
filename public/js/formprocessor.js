@@ -35,10 +35,9 @@ function downloadCityData(cityMapping) {
 		}
 		map.setFeatureState({source: "cities", id : cityId}, {numUsers : cityMapping[cityName].length});
 	}*/
-	renderCitySizes(cityMapping);
-
 	// Download the updated city mapping
 	cityUserList = cityMapping;
+	renderCitySizes(cityMapping);
 }
 
 $('#login-form').submit(function(e) {
@@ -60,7 +59,7 @@ $('#login-form').submit(function(e) {
 	    $("#login-wrapper").fadeOut();
 
 	    // Retrieve the user's city
-		$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function(data) {
+		$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function(data) {
 			var city = data["city"];
 			var cityKeyToUpdate = "";
 			updateCityNames();
@@ -127,8 +126,9 @@ $('#login-form').submit(function(e) {
 				closeButton: false,
 				closeOnClick: false
 			});
-			 
-			map.on('mouseenter', 'cities', function(e) {
+			
+			// If the user hovers over a city, pop up a list of active users in that city for the user to chat with 
+			map.on("mouseenter", "cities", function(e) {
 				var cityId = e.features[0].properties.city;
 				var listOfUsers = cityUserList[cityId];
 
@@ -158,6 +158,30 @@ $('#login-form').submit(function(e) {
 							"<div class='initiate'><i class='far fa-comment-dots'></i></div></div>")
 					}
 				}
+			});
+
+			// If the user hovers over a cluster, pop up a list of active users in that cluster for the user to chat with
+			map.on("mouseenter", "clusters", function(e) {
+				// Get the cluster's id
+				var features = map.queryRenderedFeatures(e.point, {layers: ["clusters"]});
+				var clusterId = features[0].properties.cluster_id;
+				var pointCount = features[0].properties.point_count;
+				
+				//Get a list of all the cities in the cluster
+				var clusterSource = map.getSource("cities");
+				console.log("Retrieving cities in cluster " + clusterId);
+				clusterSource.getClusterLeaves(clusterId, pointCount, 0, function(err, features) {
+					var cityList = []; // List of the city names contained within the cluster
+					
+					for (var i = 0; i < features.length; i++) { // Iterate through every single city
+						var feature = features[i];
+						var cityName = feature.properties.city // Get the city's name
+						cityList.push(cityName); // Adding the city's name to the city list
+					}
+
+					// Send a request to the server to get the list of users within that city
+					socket.emit("getCitySizes", cityList);
+				});
 			});
 			 
 			map.on('mouseleave', 'cities', function() {
