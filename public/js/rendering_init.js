@@ -35,3 +35,5 @@ readCitiesGeojson(function(result) {
 
 var featureById = {}; // Maps ids of cities to pointers to the Feature Object in citiesJSON (used for FAST access to citiesJSON data)
 citiesJSON.features.forEach(f => featureById[f.id] = f) 
+
+var clusterToNumCities = {}; // Maps cluster ids to the number of active users in that custer's area

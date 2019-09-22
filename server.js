@@ -2,6 +2,9 @@
 var express = require("express");
 var socket = require("socket.io");
 var uniqid = require("uniqid");
+var crypto = require("crypto");
+var algorithm = "aes-256-cbc";
+var {Heap} = require("heap-js");
 
 // Initialize Node.JS application
 var app = express();
@@ -40,9 +43,7 @@ System.prototype.monitorSystem = function() {
 }
 
 System.prototype.returnCitySizes = function(cityList) {
-    // Returns a dictionary mapping each city name in cityList to the list of active users in that city
-    console.log("");
-    
+    // Returns a dictionary mapping each city name in cityList to the list of active users in that city    
     var citySizes = {};
 
     for (var i = 0; i < cityList.length; i++) { // Iterate through every city's name in the list
@@ -53,6 +54,49 @@ System.prototype.returnCitySizes = function(cityList) {
         }
     }
     return citySizes;
+}
+
+// Retrieves the top k cities with the highest number of active users in cityList
+// Returns a mapping of the top cities' names to the number of active users in that city
+System.prototype.getTopCities = function(userId, clusterId, cityList, k) {
+    // Map each city's name to the number of active users in that city
+    var citySizes = {};
+    var totalUsers = 0;
+
+    for (var i = 0; i < cityList.length; i++) { // Iterate through every city in the list
+        // Determine the number of active users in the city
+        var numUsers = 0;
+        if (system.mapping[cityList[i]]) {
+            numUsers = system.mapping[cityList[i]].length;
+        }
+        citySizes[cityList[i]] = numUsers;
+        totalUsers += numUsers;
+    }
+
+    io.to(userId).emit("totalClusterUsers", [clusterId, totalUsers]);
+
+    // Build a minimum heap of size k containing the k cities with the most active users
+    var customComparator = (city1, city2) => citySizes[city1] - citySizes[city2];
+    var minHeap = new Heap(customComparator);
+
+    // Add all the cities into the heap
+    for (var j = 0; j < cityList.length; j++) {
+        minHeap.add(cityList[j]);
+
+        if (minHeap.size() > k) {
+            minHeap.poll();
+        }
+    }
+
+    // Construct a mapping of the city names to the number of users in that city
+    var topKCities = minHeap.toArray();
+    var topCityMapping = {};
+
+    for (var m = 0; m < topKCities.length; m++) {
+        topCityMapping[topKCities[m]] = citySizes[topKCities[m]];
+    }
+
+    return topCityMapping;
 }
 
 var system = new System(); // Initialize the site's networking system
@@ -79,15 +123,24 @@ function userConnect(user) {
         } else {
             system.mapping[city] = [client];
         }
-
-        system.monitorSystem();
     }
 
+    // Retrieve the number of users in each city from a list of city names
     user.on("getCitySizes", getCitySizes);
 
     function getCitySizes(cityList) {
         // Return to the requesting client the cityMapping ([city name] > [number of active users])
         var cityMapping = system.returnCitySizes(cityList); 
         io.to(user.id).emit("returnCityData", cityMapping);
+    }
+
+    // Retrieve the number of users in the top k cities
+    user.on("retrieveTopKCitySizes", getTopCitySizes);
+
+    function getTopCitySizes(retrievalData) {
+        var clusterId = retrievalData[0];
+        var cityList = retrievalData[1];
+        var k = retrievalData[2];
+        io.to(user.id).emit("returnTopCities", system.getTopCities(user.id, clusterId, cityList, k));        
     }
 }
