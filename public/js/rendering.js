@@ -53,12 +53,14 @@ map.on('style.load', function (e) {
 		"paint": {
 			// Circle is red if there's no users, circle is green if there are active users
 			"circle-color": [
-				"case", ["==", ["get", "numUsers"], null], "#ff4d4d", [">=", ["get", "numUsers"], 1], "#33cc33",
+				"case", ["==", ["get", "numUsers"], null], "#ff4d4d", [">=", ["get", "numUsers"], 1], "#ff751a", [">=", ["get", "numUsers"], 5], "#ffff4d",
+				[">=", ["get", "numUsers"], 10], "#66ff33",
 				"#ff4d4d"
 			],
 			// Circle radius is 9 if there's no users, circle is 12 if there are active users
 			"circle-radius": [
-				"case", ["==", ["get", "numUsers"], null], 9, [">=", ["get", "numUsers"], 1], 12,
+				"case", ["==", ["get", "numUsers"], null], 9, [">=", ["get", "numUsers"], 1], 12, [">=", ["get", "numUsers"], 5], 14,
+				[">=", ["get", "numUsers"], 10], 16,
 				9
 			],
 			// Circle opacity is 0.7 if there's no users, circle opacity if there are users
@@ -122,9 +124,6 @@ map.on("moveend", onMoveEnd);
 function onMoveEnd(event) {
 	updateCityNames(); 
 }
-
-// Retrieve the cities within the user's current area;
-
 
 // Listen for when the server returns the updated list of cities w/ updated user counts
 socket.on("returnCityData", updateCityData);

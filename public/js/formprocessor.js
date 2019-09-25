@@ -34,20 +34,26 @@ function downloadTopCities(topCityMapping) {
 	$("#city-list").empty();
 
 	if (topCityMapping) { // See if there are any users in the city
+		var addButton = false; // Only add the plus button if there are users in the cluster
+
 		for (var i = 0; i < topCityNames.length; i++) {
 			var cityName = topCityNames[i];
 			var shortenedCityName = cityName.split("-")[0];
 			var cityId = cityName.split("-")[1];
 
 			if (topCityMapping[cityName] >= 1) { // If there are active users in that city
+				addButton = true;
 				$("#city-list").append("<div onclick=visitCity(" + cityId + ",'" + cityName + "') class='city-panel' id=" + cityId + "><b>" + shortenedCityName + "</b>: " + topCityMapping[cityName] + " active users. </div>");
 				$("#" + cityId).click(function() {
 					visitCity(cityId, cityName);
 				});
 			}
 		}
-
-		$("#city-list").append("<button id=\"more-cities\">+</button>");
+		
+		if (addButton) {
+			console.log("topCityNames = " + topCityNames);
+			$("#city-list").append("<button id=\"more-cities\">+</button>");
+		}
 	}
 }
 
@@ -80,6 +86,7 @@ function visitCity(id, cityName) {
 	if (cityList) { // If there are users in the city
 		for (var i = 0; i < cityList.length; i++) {
 			var user = cityList[i];
+			console.log(user.id);
 			$("#city-list").append("<div class='user-panel'><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");		
 		}
 		$("#city-list").append("<div class='city-label'>" + featureById[id].properties.city.split("-")[0] + ", " + featureById[id].properties.country + "</div>");
@@ -192,8 +199,7 @@ $('#login-form').submit(function (e) {
 						.addTo(map);
 
 					// Shift the tab from "Chats" to "City"
-					$("#chat-button").removeClass("active");
-					$("#city-button").addClass("active");
+					cityView();
 
 					// Populate the city tab with the list of users in that city
 					$("#city-list").empty();
@@ -201,7 +207,8 @@ $('#login-form').submit(function (e) {
 					if (listOfUsers) { // See if there are any users in the city
 						for (var i = 0; i < listOfUsers.length; i++) {
 							var user = listOfUsers[i];
-							$("#city-list").append("<div class='user-panel'><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");
+							console.log(user.id);
+							$("#city-list").append("<div class='user-panel' onclick=openChat('" + user.id + "')><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");
 						}
 						var cityId = cityName.split("-")[1];
 						$("#city-list").append("<div class='city-label'>" + featureById[cityId].properties.city.split("-")[0] + ", " + featureById[cityId].properties.country + "</div>");
@@ -264,20 +271,28 @@ $('#login-form').submit(function (e) {
 	}
 });
 
-// Switch from chat view to city view
-$("#city-button").click(function () {
+function cityView() {
 	// Update the tab/menu displays
 	$("#chat-button").removeClass("active");
 	$("#chat-list").css("display", "none");
 	$("#city-button").addClass("active");
 	$("#city-list").css("display", "block");
-});
+}
 
-// Switch from city view to chat view
-$("#chat-button").click(function () {
+function chatView() {
 	// Update the tab/menu displays
 	$("#city-button").removeClass("active");
 	$("#city-list").css("display", "none");
 	$("#chat-button").addClass("active");
-	$("#chat-list").css("display", "block");
+	$("#chat-list").css("display", "block");	
+}
+
+// Switch from chat view to city view
+$("#city-button").click(function () {
+	cityView();
+});
+
+// Switch from city view to chat view
+$("#chat-button").click(function () {
+	chatView();
 });

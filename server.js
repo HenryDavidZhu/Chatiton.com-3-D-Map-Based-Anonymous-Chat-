@@ -5,6 +5,10 @@ var uniqid = require("uniqid");
 var crypto = require("crypto");
 var algorithm = "aes-256-cbc";
 var {Heap} = require("heap-js");
+var bodyParser = require('body-parser');
+var cors = require('cors');
+var Pusher = require('pusher');
+require('dotenv').config({ path: 'variable.env' });
 
 // Initialize Node.JS application
 var app = express();
@@ -12,9 +16,31 @@ var server = app.listen(process.env.PORT || 3000);
 app.use(express.static("public", {
     dotfiles: 'allow'
 }));
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Defines a connected user, given the following properties: username, age, shortBio, sex, city
-function Client(username, age, shortBio, sex, city) {
+// Define authentication procedure for a client
+app.post('/pusher/auth', function(req, res) {
+    var socketId = req.body.socket_id;
+    var channel = req.body.channel_name;
+    var auth = pusher.authenticate(socketId, channel);
+    res.send(auth);
+});
+
+// Initialize Pusher
+var pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,
+    key: process.env.PUSHER_APP_KEY,
+    secret: process.env.PUSHER_APP_SECRET,
+    cluster: process.env.PUSHER_APP_CLUSTER,
+    useTLS: true,
+    encryptionMasterKey: process.env.PUSHER_CHANNELS_ENCRYPTION_KEY,
+});
+
+// Defines a connected user, given the following properties: id, username, age, shortBio, sex, city
+function Client(id, username, age, shortBio, sex, city) {
+    this.id = id;
     this.username = username;
     this.age = age;
     this.shortBio = shortBio;
@@ -115,7 +141,7 @@ function userConnect(user) {
         var city = userInfo[4];
 
         // Initialize new client
-        var client = new Client(username, age, shortBio, sex, city);
+        var client = new Client(user.id, username, age, shortBio, sex, city);
 
         // Map the client to its city in the system's mapping
         if (system.mapping[city]) {

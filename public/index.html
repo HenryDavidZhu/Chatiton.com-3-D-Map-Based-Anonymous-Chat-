@@ -9,6 +9,7 @@
 		<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
 		<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.js'></script>
 		<link rel="stylesheet" href="css/main.css" />
 		<script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
@@ -36,12 +37,39 @@
 				<div style="clear: both;"></div>
 			</div>
 
-			<div id="chat-list"></div>
+			<div id="chat-list">
+				<div id="user-bar">
+					user: abcdefg
+				</div>
+				<form id="send-msg">
+				  <button id="emoji-button"><i class="fa fa-smile-o"></i></button>
+				  <input type="text" />
+				  <button id="send-button"><i class="fa fa-send-o"></i></button>
+				</form>
+			</div>
 			<div id="city-list"></div>
 		</div>
 
 		<div id="map"></div>
 
+		<div id="intro-modal">
+			<a href="#" class="close" id="close-link">close</a><br><div class="whitespace"></div>
+			<b>chatiton.com</b> is a chatting platform like no other, seamlessly integrating a map-based UI with end-to-end (E2EE) encryption that protects your privacy to the fullest extent. We never collect or track your messages. We just want you to relax and enjoy the experience of talking and meeting new people at the touch of your fingertips. Please use this site <b>responsibly</b>: abusive messages and spam are not tolerated and may result in you being banned from further use of the site.<br><div class="whitespace"></div>
+			
+			<span id="small-text">
+				<label style="word-wrap: break-word">
+					<input type="checkbox" id="displaymodal">
+					Got it! I don't need to see this info again.
+				</label>
+			</span>
+		</div>
+
+		<div id="cover-layer">
+		</div>
+
+		<script src="js/require.js"></script>
+		<script src="js/chatting.js"></script>
+		<script src="js/modalprocessor.js"></script>
 		<script src="js/rendering_init.js"></script>
 		<script src="js/rendering.js"></script>
 		<script src="js/formprocessor.js"></script>
