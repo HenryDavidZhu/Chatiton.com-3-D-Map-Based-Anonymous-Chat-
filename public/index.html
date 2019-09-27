@@ -11,6 +11,10 @@
 		<script src='https://kit.fontawesome.com/a076d05399.js'></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.js'></script>
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+		<link rel="manifest" href="/site.webmanifest">
 		<link rel="stylesheet" href="css/main.css" />
 		<script src="https://unpkg.com/tinyqueue@2.0.0/tinyqueue.min.js"></script>
 	</head>
@@ -42,9 +46,11 @@
 					user: abcdefg
 				</div>
 				<form id="send-msg">
-				  <button id="emoji-button"><i class="fa fa-smile-o"></i></button>
-				  <input type="text" />
-				  <button id="send-button"><i class="fa fa-send-o"></i></button>
+					<div class="form-wrapper">
+						<button id="emoji-button"><i class="fa fa-smile-o"></i></button>
+						<input type="text" />
+						<button id="send-button"><i class="fa fa-send-o"></i></button>
+					</div>
 				</form>
 			</div>
 			<div id="city-list"></div>

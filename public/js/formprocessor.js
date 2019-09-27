@@ -9,6 +9,12 @@ works by going to your browser and entering the API links below):
 */
 
 var socket = io.connect(); // Initializes the socket
+var clusterSource;
+
+// Helper function to add escape characters to single and double quotes of a string
+function addEscapeChars(string) {
+	return string.replace(/'/g, String.raw`\'`).replace(/"/g, String.raw`\"`);
+}
 
 // Checks if a user has geolocation enabled on their browser
 function checkGeolocation() {
@@ -28,7 +34,12 @@ function downloadCityData(cityMapping) {
 
 socket.on("returnTopCities", downloadTopCities);
 
-function downloadTopCities(topCityMapping) {
+function downloadTopCities(cityData) {
+	var clusterId = cityData[0];
+	var topCityMapping = cityData[1];
+	cityRanking = cityData[2];
+	var pointCount = cityData[3];
+
 	// Populate the city list with a list of the top K cities w/ the most active users
 	var topCityNames = Object.keys(topCityMapping);
 	$("#city-list").empty();
@@ -50,9 +61,22 @@ function downloadTopCities(topCityMapping) {
 			}
 		}
 		
+		// clusterId, cityList, cityRanking
 		if (addButton) {
-			console.log("topCityNames = " + topCityNames);
-			$("#city-list").append("<button id=\"more-cities\">+</button>");
+			clusterSource.getClusterLeaves(clusterId, pointCount, 0, function (err, features) {
+				var cityList = []; // List of the city names contained within the cluster
+
+				for (var i = 0; i < features.length; i++) { // Iterate through every single city
+					var feature = features[i];
+					var cityName = feature.properties.city // Get the city's name
+					cityList.push(cityName); // Adding the city's name to the city list
+				}
+
+				// Send a request to the server to get the list of users within that city
+				//retrieveTopKCities(clusterId, cityList, cityRanking);
+				$("#city-list").append("<button id=\"more-cities\" onclick='retrieveTopKCities('" + clusterId + "', " + cityList + ", " + cityRanking + ")'>+</button>");
+			});
+			//
 		}
 	}
 }
@@ -65,6 +89,10 @@ function downloadClusterUsers(clusterMapping) {
 	clusterToNumCities[clusterId] = clusterNumUsers;
 }
 
+function retrieveTopKCities(clusterId, cityList, cityRanking) {
+	socket.emit("retrieveTopKCitySizes", [clusterId, cityList, cityRanking]);
+}
+
 // Flies to a city's location on the map given the id and renders the city's users on the left-hand side
 function visitCity(id, cityName) {
 	var coordinates = featureById[parseInt(id)].geometry.coordinates;
@@ -73,25 +101,50 @@ function visitCity(id, cityName) {
 		zoom: 11
 	});
 
-	/* DEBUGGING purposes: print out list of users in the city
-	for (var city in cityUserList) {
-		console.log("cityUserList[" + city + "] = " + cityUserList[city]);
-	}*/
-
 	var cityList = cityUserList[cityName]; // Retrieve a list of USERS in the city the user is flying to
 
 	// Populate the city tab with the list of users in that city
 	$("#city-list").empty();
-
 	if (cityList) { // If there are users in the city
 		for (var i = 0; i < cityList.length; i++) {
 			var user = cityList[i];
-			console.log(user.id);
-			$("#city-list").append("<div class='user-panel'><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");		
+			var userId = addEscapeChars(user.id);
+			var username = addEscapeChars(user.username);
+			var userSex = addEscapeChars(user.sex);
+			var userShortBio = addEscapeChars(user.shortBio);
+			$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+			+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
+			+ ", " + "(" + user.sex + ", " + user.age + ")</div>");
 		}
 		$("#city-list").append("<div class='city-label'>" + featureById[id].properties.city.split("-")[0] + ", " + featureById[id].properties.country + "</div>");
 	}
 }
+
+function cityView() {
+	// Update the tab/menu displays
+	$("#chat-button").removeClass("active");
+	$("#chat-list").css("display", "none");
+	$("#city-button").addClass("active");
+	$("#city-list").css("display", "block");
+}
+
+function chatView() {
+	// Update the tab/menu displays
+	$("#city-button").removeClass("active");
+	$("#city-list").css("display", "none");
+	$("#chat-button").addClass("active");
+	$("#chat-list").css("display", "block");	
+}
+
+// Switch from chat view to city view
+$("#city-button").click(function () {
+	cityView();
+});
+
+// Switch from city view to chat view
+$("#chat-button").click(function () {
+	chatView();
+});
 
 $('#login-form').submit(function (e) {
 	e.preventDefault(); // Prevents page from refreshing
@@ -112,7 +165,7 @@ $('#login-form').submit(function (e) {
 		$("#login-wrapper").fadeOut();
 
 		// Retrieve the user's city
-		$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function (data) {
+		$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
 			var city = data["city"];
 			var cityKeyToUpdate = "";
 			updateCityNames();
@@ -161,6 +214,7 @@ $('#login-form').submit(function (e) {
 				}
 			});
 
+			clusterSource = map.getSource("cities");
 			socket.emit("initializeUser", [username, age, bio, sex, cityKeyToUpdate]); // Send client data to server handler
 			// Emit a request to the server to update the number of active users in the client's current city
 			socket.emit("cityUpdate", cityKeyToUpdate);
@@ -181,6 +235,8 @@ $('#login-form').submit(function (e) {
 
 			// If the user hovers over a city, pop up a list of active users in that city for the user to chat with 
 			map.on("mouseenter", "cities", function (e) {
+				cityRanking = 1;
+
 				var cityName = e.features[0].properties.city;
 				
 				if (cityName) { // If the point is not a cluster
@@ -207,8 +263,13 @@ $('#login-form').submit(function (e) {
 					if (listOfUsers) { // See if there are any users in the city
 						for (var i = 0; i < listOfUsers.length; i++) {
 							var user = listOfUsers[i];
-							console.log(user.id);
-							$("#city-list").append("<div class='user-panel' onclick=openChat('" + user.id + "')><b>" + user.username + " (" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");
+							var userId = addEscapeChars(user.id);
+							var username = addEscapeChars(user.username);
+							var userSex = addEscapeChars(user.sex);
+							var userShortBio = addEscapeChars(user.shortBio);
+							$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+							+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
+							+ ", " + "(" + user.sex + ", " + user.age + ")</div>");
 						}
 						var cityId = cityName.split("-")[1];
 						$("#city-list").append("<div class='city-label'>" + featureById[cityId].properties.city.split("-")[0] + ", " + featureById[cityId].properties.country + "</div>");
@@ -224,10 +285,8 @@ $('#login-form').submit(function (e) {
 				});
 				var clusterId = features[0].properties.cluster_id;
 				var pointCount = features[0].properties.point_count;
-				//console.log("features[0] = " + features[0].properties.geometry);
 
-				//Get a list of all the cities in the cluster
-				var clusterSource = map.getSource("cities");
+				// Get a list of all the cities in the cluster
 				clusterSource.getClusterLeaves(clusterId, pointCount, 0, function (err, features) {
 					var cityList = []; // List of the city names contained within the cluster
 
@@ -238,11 +297,11 @@ $('#login-form').submit(function (e) {
 					}
 
 					// Send a request to the server to get the list of users within that city
-					socket.emit("retrieveTopKCitySizes", [clusterId, cityList, 10]);
+					retrieveTopKCities(clusterId, cityList, cityRanking, pointCount);
 
 					// Retrieve the number of user in the cluster
 					var clusterUserCount = clusterToNumCities[clusterId];
-					//console.log(features);
+					console.log("clusterUserCount = " + clusterUserCount);
 					// Display popup onto map
 					var clusterCoordinates = [e.lngLat.lng, e.lngLat.lat];
 					clusterPopup.setLngLat(clusterCoordinates)
@@ -250,6 +309,8 @@ $('#login-form').submit(function (e) {
 						.addTo(map);
 					//});
 				});
+
+				cityView();
 			});
 
 			map.on('mouseleave', 'clusters', function () {
@@ -269,30 +330,4 @@ $('#login-form').submit(function (e) {
 			socket.emit("getCitySizes", Object.keys(cityNames));
 		});
 	}
-});
-
-function cityView() {
-	// Update the tab/menu displays
-	$("#chat-button").removeClass("active");
-	$("#chat-list").css("display", "none");
-	$("#city-button").addClass("active");
-	$("#city-list").css("display", "block");
-}
-
-function chatView() {
-	// Update the tab/menu displays
-	$("#city-button").removeClass("active");
-	$("#city-list").css("display", "none");
-	$("#chat-button").addClass("active");
-	$("#chat-list").css("display", "block");	
-}
-
-// Switch from chat view to city view
-$("#city-button").click(function () {
-	cityView();
-});
-
-// Switch from city view to chat view
-$("#chat-button").click(function () {
-	chatView();
 });

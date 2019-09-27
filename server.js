@@ -84,7 +84,7 @@ System.prototype.returnCitySizes = function(cityList) {
 
 // Retrieves the top k cities with the highest number of active users in cityList
 // Returns a mapping of the top cities' names to the number of active users in that city
-System.prototype.getTopCities = function(userId, clusterId, cityList, k) {
+System.prototype.getTopCities = function(userId, clusterId, cityList, cityRanking) {
     // Map each city's name to the number of active users in that city
     var citySizes = {};
     var totalUsers = 0;
@@ -101,21 +101,21 @@ System.prototype.getTopCities = function(userId, clusterId, cityList, k) {
 
     io.to(userId).emit("totalClusterUsers", [clusterId, totalUsers]);
 
-    // Build a minimum heap of size k containing the k cities with the most active users
-    var customComparator = (city1, city2) => citySizes[city1] - citySizes[city2];
-    var minHeap = new Heap(customComparator);
-
-    // Add all the cities into the heap
-    for (var j = 0; j < cityList.length; j++) {
-        minHeap.add(cityList[j]);
-
-        if (minHeap.size() > k) {
-            minHeap.poll();
-        }
-    }
+    // Sort the list of cities in the cluster
+    cityList.sort();
 
     // Construct a mapping of the city names to the number of users in that city
-    var topKCities = minHeap.toArray();
+    var startIndex = cityRanking - 1;
+    if (cityList.length < startIndex + 1) {
+        return {};
+    }
+
+    var endIndex = startIndex + 10;
+    if (cityList.length > endIndex + 1) {
+        endIndex = cityList.length - 1;
+    }
+
+    var topKCities = cityList.slice(startIndex, endIndex + 1);
     var topCityMapping = {};
 
     for (var m = 0; m < topKCities.length; m++) {
@@ -166,7 +166,8 @@ function userConnect(user) {
     function getTopCitySizes(retrievalData) {
         var clusterId = retrievalData[0];
         var cityList = retrievalData[1];
-        var k = retrievalData[2];
-        io.to(user.id).emit("returnTopCities", system.getTopCities(user.id, clusterId, cityList, k));        
+        var cityRanking = retrievalData[2];
+        var pointCount = retrievalData[3];
+        io.to(user.id).emit("returnTopCities", [clusterId, system.getTopCities(user.id, clusterId, cityList, cityRanking), cityRanking, pointCount]);        
     }
 }

@@ -35,7 +35,6 @@ html, body {
 	font-family: Helvetica, serif;
 	text-align: center;
 	color: black;
-   
 }
 #form-wrapper {
 	z-index: 5;
@@ -118,6 +117,9 @@ h1 {
 	padding-top: 3px;
 	padding-bottom: 3px;
 	width: 100%;
+}
+#more-cities:hover {
+	cursor: pointer;
 }
 .city-label {
 	position: absolute;
@@ -215,6 +217,7 @@ input[type="checkbox"] {
 	width: 27px;
 	height: 27px;
 	border-radius: 50%;
+	vertical-align: center;
 }
 #chat-list #send-msg #emoji-button {
 	background: transparent;
@@ -222,7 +225,15 @@ input[type="checkbox"] {
 	outline: 0;
 	border: 0;
 	font-size: 22px;
+	padding: 0;
 }
 #chat-list #send-msg #emoji-button:hover {
 	cursor: pointer;
+}
+.form-wrapper {
+	display: flex;
+	padding-left: 7px;
+	padding-right: 7px;
+	width: 100%;
+	align-items: center;
 }

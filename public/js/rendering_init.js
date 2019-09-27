@@ -37,3 +37,10 @@ var featureById = {}; // Maps ids of cities to pointers to the Feature Object in
 citiesJSON.features.forEach(f => featureById[f.id] = f) 
 
 var clusterToNumCities = {}; // Maps cluster ids to the number of active users in that custer's area
+
+/*
+	The ranking of the city in which we are searching the cluster's most active cities from.
+	For example, if cityRanking = 1, we will search the top 10 cities in the cluster.
+	For example, if cityRanking = 2, we will search the 11th through 20th cities in the cluster with the most users.
+*/
+var cityRanking = 1; 

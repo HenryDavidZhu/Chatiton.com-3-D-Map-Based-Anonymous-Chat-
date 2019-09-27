@@ -85,7 +85,7 @@ map.on('style.load', function (e) {
 		},
 	});
 
-	$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function (data) {
+	$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
 		// Use ipdata.co's API to retrieve the user's latitude and longitude
 		userLong = data["longitude"];
 		userLat = data["latitude"];
