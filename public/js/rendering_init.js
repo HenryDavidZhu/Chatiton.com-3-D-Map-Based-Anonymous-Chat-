@@ -44,3 +44,6 @@ var clusterToNumCities = {}; // Maps cluster ids to the number of active users i
 	For example, if cityRanking = 2, we will search the 11th through 20th cities in the cluster with the most users.
 */
 var cityRanking = 1; 
+
+var clusterPopup; // Popup for clusters
+var popup; // Popup for cities

@@ -51,6 +51,7 @@ function Client(id, username, age, shortBio, sex, city) {
 // System: contains all networking logic and data for the site
 function System() {
     this.mapping = {}; // Maps a city to a list of active users (Client object) in that city ([city name] > [Client1, Client2, .... Client N])
+    this.idToCity = {}; // Maps a user's id to the city they are chatting from 
 }
 
 // Output mapping of cities to active users (for debugging purposes)
@@ -61,7 +62,6 @@ System.prototype.monitorSystem = function() {
 
         for (var i = 0; i < clients.length; i++) { // Iterate through every client in the city
             var client = clients[i];
-            console.log("client: " + client.username); 
         }
 
         console.log("");
@@ -140,6 +140,8 @@ function userConnect(user) {
     	var sex = userInfo[3];
         var city = userInfo[4];
 
+        console.log("connected new user form city = " + city);
+
         // Initialize new client
         var client = new Client(user.id, username, age, shortBio, sex, city);
 
@@ -149,6 +151,50 @@ function userConnect(user) {
         } else {
             system.mapping[city] = [client];
         }
+
+        // Map the client's id to its city
+        console.log(user.id + " >>>>>>>>> " + city);
+        system.idToCity[user.id] = city;
+
+        system.monitorSystem(); // Monitor the mapping of cities to their active users
+    }
+
+    // When user disconnects
+    user.on("disconnect", userDisconnect);
+
+    function userDisconnect() {
+        // Remove all associations to the disconnected user server-side
+        // Retrieve the city of that user
+        var userCity = system.idToCity[user.id];
+        console.log("disconnect from user " + user.id);
+        console.log("userCity = " + userCity);
+
+        // Search system.mapping to find the list of clients in the user's city
+        var cityList = system.mapping[userCity];
+
+        if (cityList) {
+            console.log("found city list for " + userCity);
+            console.log("cityList.length = " + cityList.length);
+            // Conduct a linear search to find which element in the list is the user
+            var userIndex = 0;
+
+            for (var i = 0; i < cityList.length; i++) {
+                console.log("cityList[" + i + "].id = " + cityList[i].id);
+                if (cityList[i].id == user.id) {
+                    userIndex = i;
+                    break;
+                }
+            }
+
+            console.log("userIndex = " + userIndex);
+            // Remove the user from the city list
+            cityList.splice(userIndex, 1);
+        }
+
+        /*
+            Remove all associations to the disconnected user client-side:
+            1. User is currently chatting with disconnected user
+        */
     }
 
     // Retrieve the number of users in each city from a list of city names

@@ -87,6 +87,8 @@ function downloadClusterUsers(clusterMapping) {
 	var clusterId = clusterMapping[0];
 	var clusterNumUsers = clusterMapping[1];
 	clusterToNumCities[clusterId] = clusterNumUsers;
+
+	clusterPopup.setHTML("There are " + clusterNumUsers + " active user(s) here.").addTo(map);
 }
 
 function retrieveTopKCities(clusterId, cityList, cityRanking) {
@@ -114,7 +116,7 @@ function visitCity(id, cityName) {
 			var userShortBio = addEscapeChars(user.shortBio);
 			$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
 			+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
-			+ ", " + "(" + user.sex + ", " + user.age + ")</div>");
+			+ ", " + "(" + user.sex + ", " + user.age + ")</b> <br>" + user.shortBio + "</div>");
 		}
 		$("#city-list").append("<div class='city-label'>" + featureById[id].properties.city.split("-")[0] + ", " + featureById[id].properties.country + "</div>");
 	}
@@ -148,186 +150,207 @@ $("#chat-button").click(function () {
 
 $('#login-form').submit(function (e) {
 	e.preventDefault(); // Prevents page from refreshing
+	var validForm = true; // Second layer of validation incase user uses inspect element to modify form content
 
-	if (flying) {
-		alert("Wait until flyTo has finished.");
-	} else {
-		// Fade in the chat panel
-		$("#chat-menu").fadeIn();
+	// Ensure that the username is between 4 and 20 characters
+	if ($("#username").val().length < 4 || $("#username").val().length > 20) {
+		alert("Make sure your username is between 4 and 20 characters.");
+		validForm = false;
+	}
 
-		// Retrieve user information
-		var username = $("#username").val();
-		var bio = $("#bio").val();
-		var age = $("#age").val();
-		var sex = $("#sex").find(":selected").val();
+	// Ensure that the age is between 16 and 75
+	if ($("#age").val() < 16 || $("#age").val() > 75) {
+		alert("You must be at least 16 years old to use this site... if your age is over 75, just put 75.")
+		validForm = false;
+	}
 
-		// Fade out login menu
-		$("#login-wrapper").fadeOut();
+	// Ensure that the length of the short biography is between 20 and 100 characters
+	if ($("#bio").val().length < 20 || $("#bio").val().length > 100) {
+		alert("Your biography must be between 20 and 100 characters")
+		validForm = false;
+	}
 
-		// Retrieve the user's city
-		$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
-			var city = data["city"];
-			var cityKeyToUpdate = "";
-			updateCityNames();
+	console.log("validForm = " + validForm);
 
-			// Match up the city retrieved using ipdata.co with the formatted city embedded in the map 
-			Object.keys(cityNames).forEach(function (cityId) {
-				if (cityId.includes(city + "-")) {
-					cityKeyToUpdate = cityId;
-					var cityObject = cityNames[cityId];
-					cityLong = cityObject.geometry.coordinates[0];
-					cityLat = cityObject.geometry.coordinates[1];
-				}
-			});
+	if (validForm) {
+		if (flying) {
+			alert("Wait until flyTo has finished.");
+		} else {
+			// Fade in the chat panel
+			$("#chat-menu").fadeIn();
 
-			flying = true;
-			map.flyTo({
-				center: [cityLong, cityLat]
-			});
+			// Retrieve user information
+			var username = $("#username").val();
+			var bio = $("#bio").val();
+			var age = $("#age").val();
+			var sex = $("#sex").find(":selected").val();
 
-			// Draw a circle at the user's location
-			map.addSource("userCityCircle", {
-				"type": "geojson",
-				"data": {
-					"type": "FeatureCollection",
-					"features": [{
-						"type": "Feature",
-						"geometry": {
-							"type": "Point",
-							"coordinates": [cityLong, cityLat]
-						}
-					}]
-				}
-			});
+			// Fade out login menu
+			$("#login-wrapper").fadeOut();
 
-			map.addLayer({
-				"id": "userCityCircle",
-				"type": "circle",
-				"source": "userCityCircle",
-				"layout": {
-					"visibility": "none"
-				},
-				"paint": {
-					"circle-radius": 14,
-					"circle-color": "#ff6666",
-					"circle-opacity": 0.6
-				}
-			});
+			// Retrieve the user's city
+			$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
+				var city = data["city"];
+				var cityKeyToUpdate = "";
+				updateCityNames();
 
-			clusterSource = map.getSource("cities");
-			socket.emit("initializeUser", [username, age, bio, sex, cityKeyToUpdate]); // Send client data to server handler
-			// Emit a request to the server to update the number of active users in the client's current city
-			socket.emit("cityUpdate", cityKeyToUpdate);
-
-			var cityId = parseInt(cityKeyToUpdate.split("-")[1]);
-
-			// Create a popup, but don't add it to the map yet.
-			var popup = new mapboxgl.Popup({
-				closeButton: false,
-				closeOnClick: false
-			});
-
-			// Create a popup for the clusters, but don't add it to the map yet.
-			var clusterPopup = new mapboxgl.Popup({
-				closeButton: false,
-				closeOnClick: false
-			});
-
-			// If the user hovers over a city, pop up a list of active users in that city for the user to chat with 
-			map.on("mouseenter", "cities", function (e) {
-				cityRanking = 1;
-
-				var cityName = e.features[0].properties.city;
-				
-				if (cityName) { // If the point is not a cluster
-					var listOfUsers = cityUserList[cityName];
-
-					// Retrieve the number of active users in the city
-					var userCount = 0;
-					if (listOfUsers) {
-						userCount = listOfUsers.length;
+				// Match up the city retrieved using ipdata.co with the formatted city embedded in the map 
+				Object.keys(cityNames).forEach(function (cityId) {
+					if (cityId.includes(city + "-")) {
+						cityKeyToUpdate = cityId;
+						var cityObject = cityNames[cityId];
+						cityLong = cityObject.geometry.coordinates[0];
+						cityLat = cityObject.geometry.coordinates[1];
 					}
+				});
 
-					// Display popup onto map
-					var popupCoordinates = [e.lngLat.lng, e.lngLat.lat];
-					popup.setLngLat(popupCoordinates)
-						.setHTML("There are " + userCount + " active user(s) here.")
-						.addTo(map);
+				flying = true;
+				map.flyTo({
+					center: [cityLong, cityLat]
+				});
 
-					// Shift the tab from "Chats" to "City"
+				// Draw a circle at the user's location
+				map.addSource("userCityCircle", {
+					"type": "geojson",
+					"data": {
+						"type": "FeatureCollection",
+						"features": [{
+							"type": "Feature",
+							"geometry": {
+								"type": "Point",
+								"coordinates": [cityLong, cityLat]
+							}
+						}]
+					}
+				});
+
+				map.addLayer({
+					"id": "userCityCircle",
+					"type": "circle",
+					"source": "userCityCircle",
+					"layout": {
+						"visibility": "none"
+					},
+					"paint": {
+						"circle-radius": 14,
+						"circle-color": "#ff6666",
+						"circle-opacity": 0.6
+					}
+				});
+
+				clusterSource = map.getSource("cities");
+				socket.emit("initializeUser", [username, age, bio, sex, cityKeyToUpdate]); // Send client data to server handler
+				// Emit a request to the server to update the number of active users in the client's current city
+				socket.emit("cityUpdate", cityKeyToUpdate);
+
+				var cityId = parseInt(cityKeyToUpdate.split("-")[1]);
+
+				// Create a popup, but don't add it to the map yet.
+				popup = new mapboxgl.Popup({
+					closeButton: false,
+					closeOnClick: false
+				});
+
+				// Create a popup for the clusters, but don't add it to the map yet.
+				clusterPopup = new mapboxgl.Popup({
+					closeButton: false,
+					closeOnClick: false
+				});
+
+				// If the user hovers over a city, pop up a list of active users in that city for the user to chat with 
+				map.on("mouseenter", "cities", function (e) {
+					cityRanking = 1;
+
+					var cityName = e.features[0].properties.city;
+					
+					if (cityName) { // If the point is not a cluster
+						var listOfUsers = cityUserList[cityName];
+
+						// Retrieve the number of active users in the city
+						var userCount = 0;
+						if (listOfUsers) {
+							userCount = listOfUsers.length;
+						}
+
+						// Display popup onto map
+						var popupCoordinates = [e.lngLat.lng, e.lngLat.lat];
+						popup.setLngLat(popupCoordinates)
+							.setHTML("There are " + userCount + " active user(s) here.")
+							.addTo(map);
+
+						// Shift the tab from "Chats" to "City"
+						cityView();
+
+						// Populate the city tab with the list of users in that city
+						$("#city-list").empty();
+
+						if (listOfUsers) { // See if there are any users in the city
+							for (var i = 0; i < listOfUsers.length; i++) {
+								var user = listOfUsers[i];
+								var userId = addEscapeChars(user.id);
+								var username = addEscapeChars(user.username);
+								var userSex = addEscapeChars(user.sex);
+								var userShortBio = addEscapeChars(user.shortBio);
+								$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+								+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
+								+ ", " + "(" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");
+							}
+							var cityId = cityName.split("-")[1];
+							$("#city-list").append("<div class='city-label'>" + featureById[cityId].properties.city.split("-")[0] + ", " + featureById[cityId].properties.country + "</div>");
+						}
+					}
+				});
+
+				// If the user hovers over a cluster, pop up a list of active users in that cluster for the user to chat with
+				map.on("mouseenter", "clusters", function (e) {
+					// Get the cluster's id
+					var features = map.queryRenderedFeatures(e.point, {
+						layers: ["clusters"]
+					});
+					var clusterId = features[0].properties.cluster_id;
+					var pointCount = features[0].properties.point_count;
+
+					// Get a list of all the cities in the cluster
+					clusterSource.getClusterLeaves(clusterId, pointCount, 0, function (err, features) {
+						var cityList = []; // List of the city names contained within the cluster
+
+						for (var i = 0; i < features.length; i++) { // Iterate through every single city
+							var feature = features[i];
+							var cityName = feature.properties.city // Get the city's name
+							cityList.push(cityName); // Adding the city's name to the city list
+						}
+
+						// Send a request to the server to get the list of users within that city
+						retrieveTopKCities(clusterId, cityList, cityRanking, pointCount);
+
+						// Retrieve the number of user in the cluster
+						var clusterUserCount = clusterToNumCities[clusterId];
+						console.log("clusterUserCount = " + clusterUserCount);
+						// Display popup onto map
+						var clusterCoordinates = [e.lngLat.lng, e.lngLat.lat];
+						clusterPopup.setLngLat(clusterCoordinates);
+							
+					});
+
 					cityView();
-
-					// Populate the city tab with the list of users in that city
-					$("#city-list").empty();
-
-					if (listOfUsers) { // See if there are any users in the city
-						for (var i = 0; i < listOfUsers.length; i++) {
-							var user = listOfUsers[i];
-							var userId = addEscapeChars(user.id);
-							var username = addEscapeChars(user.username);
-							var userSex = addEscapeChars(user.sex);
-							var userShortBio = addEscapeChars(user.shortBio);
-							$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
-							+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
-							+ ", " + "(" + user.sex + ", " + user.age + ")</div>");
-						}
-						var cityId = cityName.split("-")[1];
-						$("#city-list").append("<div class='city-label'>" + featureById[cityId].properties.city.split("-")[0] + ", " + featureById[cityId].properties.country + "</div>");
-					}
-				}
-			});
-
-			// If the user hovers over a cluster, pop up a list of active users in that cluster for the user to chat with
-			map.on("mouseenter", "clusters", function (e) {
-				// Get the cluster's id
-				var features = map.queryRenderedFeatures(e.point, {
-					layers: ["clusters"]
-				});
-				var clusterId = features[0].properties.cluster_id;
-				var pointCount = features[0].properties.point_count;
-
-				// Get a list of all the cities in the cluster
-				clusterSource.getClusterLeaves(clusterId, pointCount, 0, function (err, features) {
-					var cityList = []; // List of the city names contained within the cluster
-
-					for (var i = 0; i < features.length; i++) { // Iterate through every single city
-						var feature = features[i];
-						var cityName = feature.properties.city // Get the city's name
-						cityList.push(cityName); // Adding the city's name to the city list
-					}
-
-					// Send a request to the server to get the list of users within that city
-					retrieveTopKCities(clusterId, cityList, cityRanking, pointCount);
-
-					// Retrieve the number of user in the cluster
-					var clusterUserCount = clusterToNumCities[clusterId];
-					console.log("clusterUserCount = " + clusterUserCount);
-					// Display popup onto map
-					var clusterCoordinates = [e.lngLat.lng, e.lngLat.lat];
-					clusterPopup.setLngLat(clusterCoordinates)
-						.setHTML("There are " + clusterUserCount + " active user(s) here.")
-						.addTo(map);
-					//});
 				});
 
-				cityView();
+				map.on('mouseleave', 'clusters', function () {
+					clusterPopup.remove();
+				});
+
+				map.on('mouseleave', 'cities', function () {
+					popup.remove();
+				});
+
+				// Enable map interactivity after everything has been loaded
+				$("#map").css("pointer-events", "auto");
+
+				// Get the cities in the user's current view, and send a request to the server, asking how many users are in each city
+				updateCityNames();
+
+				socket.emit("getCitySizes", Object.keys(cityNames));
 			});
-
-			map.on('mouseleave', 'clusters', function () {
-				clusterPopup.remove();
-			});
-
-			map.on('mouseleave', 'cities', function () {
-				popup.remove();
-			});
-
-			// Enable map interactivity after everything has been loaded
-			$("#map").css("pointer-events", "auto");
-
-			// Get the cities in the user's current view, and send a request to the server, asking how many users are in each city
-			updateCityNames();
-
-			socket.emit("getCitySizes", Object.keys(cityNames));
-		});
+		}
 	}
 });

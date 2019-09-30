@@ -23,9 +23,9 @@
 		<div id="login-wrapper">
 			<h1>chat-it-on</h1>
 			<form id="login-form">
-				<input type="text" placeholder="username" min="5" max="50" id="username" /><br>
-				<input type="number" placeholder="age" name="age" min="16" max="90" id="age" /><br>
-				<input type="text" placeholder="short bio" min="50" max="175" id="bio"/><br>
+				<input type="text" placeholder="username" pattern=".{4,20}" required title="4 to 20 characters" id="username" /><br>
+				<input type="number" placeholder="age" name="age" min="16" max="75" id="age" /><br>
+				<input type="text" placeholder="short bio" pattern=".{20,100}" required title="45 to 100 characters" id="bio"/><br>
 				<select id="sex">
 					<option value="male" selected>Male</option>
 					<option value="female">Female</option>
