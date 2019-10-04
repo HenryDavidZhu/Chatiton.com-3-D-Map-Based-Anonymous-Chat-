@@ -36,22 +36,26 @@
 
 		<div id="chat-menu">
 			<div class="tab">
-				<button class="tablinks active" id="chat-button">Chats</button>
-				<button class="tablinks" id="city-button">City</button>
+				<button class="tablinks" id="chat-button">Chats</button>
+				<button class="tablinks active" id="city-button">City</button>
 				<div style="clear: both;"></div>
 			</div>
 
 			<div id="chat-list">
-				<div id="user-bar">
-					user: abcdefg
+				<div id="display-chats">
 				</div>
-				<form id="send-msg">
-					<div class="form-wrapper">
-						<button id="emoji-button"><i class="fa fa-smile-o"></i></button>
-						<input type="text" />
-						<button id="send-button"><i class="fa fa-send-o"></i></button>
+				<div id="active-chat">
+					<div id="user-bar">
+						user: N/A
 					</div>
-				</form>
+					<form id="send-msg">
+						<div class="form-wrapper">
+							<button id="emoji-button"><i class="fa fa-smile-o"></i></button>
+							<input type="text" id="msg-text"/>
+							<button id="send-button"><i class="fa fa-send-o"></i></button>
+						</div>
+					</form>
+				</div>
 			</div>
 			<div id="city-list"></div>
 		</div>
@@ -60,7 +64,7 @@
 
 		<div id="intro-modal">
 			<a href="#" class="close" id="close-link">close</a><br><div class="whitespace"></div>
-			<b>chatiton.com</b> is a chatting platform like no other, seamlessly integrating a map-based UI with end-to-end (E2EE) encryption that protects your privacy to the fullest extent. We never collect or track your messages. We just want you to relax and enjoy the experience of talking and meeting new people at the touch of your fingertips. Please use this site <b>responsibly</b>: abusive messages and spam are not tolerated and may result in you being banned from further use of the site.<br><div class="whitespace"></div>
+			<b>chatiton.com</b> is a chatting platform like no other, seamlessly integrating a map-based UI with encrypted communication. Messages are NEVER stored on our servers. We just want you to relax and enjoy the experience of talking and meeting new people at the touch of your fingertips. Please use this site <b>responsibly</b>: abusive messages and spam are not tolerated and may result in you being banned from further use of the site.<br><div class="whitespace"></div>
 			
 			<span id="small-text">
 				<label style="word-wrap: break-word">
@@ -73,11 +77,15 @@
 		<div id="cover-layer">
 		</div>
 
+		<div id="notification-modal">
+			You received a message from <b>user</b>.
+		</div>
+
 		<script src="js/require.js"></script>
-		<script src="js/chatting.js"></script>
 		<script src="js/modalprocessor.js"></script>
 		<script src="js/rendering_init.js"></script>
 		<script src="js/rendering.js"></script>
+		<script src="js/chatting.js"></script>
 		<script src="js/formprocessor.js"></script>
 	</body>
 </html>

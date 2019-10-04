@@ -7,8 +7,6 @@ works by going to your browser and entering the API links below):
 1. https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059
 2. https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6
 */
-
-var socket = io.connect(); // Initializes the socket
 var clusterSource;
 
 // Helper function to add escape characters to single and double quotes of a string
@@ -74,7 +72,7 @@ function downloadTopCities(cityData) {
 
 				// Send a request to the server to get the list of users within that city
 				//retrieveTopKCities(clusterId, cityList, cityRanking);
-				$("#city-list").append("<button id=\"more-cities\" onclick='retrieveTopKCities('" + clusterId + "', " + cityList + ", " + cityRanking + ")'>+</button>");
+				$("#city-list").append("<button id=\"more-cities\" onclick='retrieveTopKCities('" + clusterId + "', " + cityList + ", " + cityRanking + ")'>View more cities in this area</button>");
 			});
 			//
 		}
@@ -264,6 +262,7 @@ $('#login-form').submit(function (e) {
 					var cityName = e.features[0].properties.city;
 					
 					if (cityName) { // If the point is not a cluster
+						socket.emit("getCitySizes", [cityName]); // Send a request to retrieve the number of active users in cityName
 						var listOfUsers = cityUserList[cityName];
 
 						// Retrieve the number of active users in the city

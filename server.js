@@ -140,8 +140,6 @@ function userConnect(user) {
     	var sex = userInfo[3];
         var city = userInfo[4];
 
-        console.log("connected new user form city = " + city);
-
         // Initialize new client
         var client = new Client(user.id, username, age, shortBio, sex, city);
 
@@ -153,7 +151,6 @@ function userConnect(user) {
         }
 
         // Map the client's id to its city
-        console.log(user.id + " >>>>>>>>> " + city);
         system.idToCity[user.id] = city;
 
         system.monitorSystem(); // Monitor the mapping of cities to their active users
@@ -166,15 +163,11 @@ function userConnect(user) {
         // Remove all associations to the disconnected user server-side
         // Retrieve the city of that user
         var userCity = system.idToCity[user.id];
-        console.log("disconnect from user " + user.id);
-        console.log("userCity = " + userCity);
 
         // Search system.mapping to find the list of clients in the user's city
         var cityList = system.mapping[userCity];
 
         if (cityList) {
-            console.log("found city list for " + userCity);
-            console.log("cityList.length = " + cityList.length);
             // Conduct a linear search to find which element in the list is the user
             var userIndex = 0;
 
@@ -186,15 +179,9 @@ function userConnect(user) {
                 }
             }
 
-            console.log("userIndex = " + userIndex);
             // Remove the user from the city list
             cityList.splice(userIndex, 1);
         }
-
-        /*
-            Remove all associations to the disconnected user client-side:
-            1. User is currently chatting with disconnected user
-        */
     }
 
     // Retrieve the number of users in each city from a list of city names
@@ -215,5 +202,18 @@ function userConnect(user) {
         var cityRanking = retrievalData[2];
         var pointCount = retrievalData[3];
         io.to(user.id).emit("returnTopCities", [clusterId, system.getTopCities(user.id, clusterId, cityList, cityRanking), cityRanking, pointCount]);        
+    }
+
+    // When a user wants to send a message to another user
+    user.on("sendMsg", sendMsg);
+
+    function sendMsg(msgData) {
+        var msgContent = msgData[0];
+        var receiverId = msgData[1];
+
+        console.log("sending message to " + receiverId);
+
+        // Send the message to the receiver
+        io.to(receiverId).emit("receiveMessage", [msgContent, receiverId]);
     }
 }

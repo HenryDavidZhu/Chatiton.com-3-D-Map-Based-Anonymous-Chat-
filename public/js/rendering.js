@@ -53,13 +53,19 @@ map.on('style.load', function (e) {
 		"paint": {
 			// Circle is red if there's no users, circle is green if there are active users
 			"circle-color": [
-				"case", ["==", ["get", "numUsers"], null], "#ff4d4d", [">=", ["get", "numUsers"], 1], "#ff751a", [">=", ["get", "numUsers"], 5], "#ffff4d",
+				"case", 
+				["==", ["get", "numUsers"], null], "#ff4d4d", 
+				["all", ['>=', ['get', 'numUsers'], 1], ['<', ['get', 'numUsers'], 5]], "#ff751a",
+				["all", ['>=', ['get', 'numUsers'], 5], ['<', ['get', 'numUsers'], 10]], "#ffff4d", 
 				[">=", ["get", "numUsers"], 10], "#66ff33",
 				"#ff4d4d"
 			],
 			// Circle radius is 9 if there's no users, circle is 12 if there are active users
 			"circle-radius": [
-				"case", ["==", ["get", "numUsers"], null], 9, [">=", ["get", "numUsers"], 1], 12, [">=", ["get", "numUsers"], 5], 14,
+				"case", 
+				["==", ["get", "numUsers"], null], 9,
+				["all", ['>=', ['get', 'numUsers'], 1], ['<', ['get', 'numUsers'], 5]], 12,
+				["all", ['>=', ['get', 'numUsers'], 5], ['<', ['get', 'numUsers'], 10]], 14,
 				[">=", ["get", "numUsers"], 10], 16,
 				9
 			],
@@ -141,6 +147,7 @@ function renderCitySizes(cityMap) {
 		var cityName = cityNameList[i];
 		var id = cityName.split("-")[1]; 
 		featureById[id].properties.numUsers = cityMap[cityName].length; // Test value of 3, change later
+		console.log(cityName + ".numUsers = " + featureById[id].properties.numUsers);
 	}
 
 	map.getSource("cities").setData(citiesJSON); // Set the updated GeoJSON
