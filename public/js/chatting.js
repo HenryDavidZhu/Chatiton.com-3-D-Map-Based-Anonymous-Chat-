@@ -3,6 +3,8 @@ var currentRoom = "";
 var securityLevel = 2048;
 var usersChattingWith = {}; // A map of users you have been chatting with (id > ChatUser Object)
 var chats = {}; // A map of the ids of the users you have been chatting with to a list of messages within that chat
+var userTimestamps = new TreeMap(); // TreeMap that maps the latest timestamps of the messages sent between a users (timestamp > ChatUser Object)
+var date = new Date(); // Date object used to timestamp messages and when a user has opened a chat with a new user
 
 // Defines a class to represent a user one is chatting with
 function ChatUser(userId, username, userSex, userAge, shortBio) {
@@ -12,6 +14,7 @@ function ChatUser(userId, username, userSex, userAge, shortBio) {
 	this.userAge = userAge;
 	this.shortBio = shortBio;
 	this.lastMessage = "";
+	this.lastTimestamp = date.getTime();
 }
 
 // Opens the chat dialog 
@@ -26,7 +29,7 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 	// Empty active-chat
 	$("#display-chats").empty();
 
-	userSexSymbol = "&#9794;";
+	var userSexSymbol = "&#9794;";
 	if (userSex == "female") {
 		userSexSymbol = "&#9792;";
 	}
@@ -54,17 +57,44 @@ $("#send-msg").submit(function(e) {
 function returnToChatList() {
 	$("#display-chats").empty();
 
+	var sortedIds = []; // A list of user ids sorted by when they have last chatted with you
+	userTimestamps = new TreeMap(); // Reset/clear the treemap
+
 	// Populate active-chat with users in usersChattingWith
 	for (var userId in usersChattingWith) {
-		var userObject = usersChattingWith[userId];
-		
-		// Print out the mapping of the userId to its respective object
-		console.log("userId = " + userId + " : " + userObject);
+		var user = usersChattingWith[userId];
+		var userLastMessage = user.lastTimestamp;
 
-		$("#display-chats").append("<div class='user-panel' id='" + userObject.userId + '\' onclick="openChat(\'' + userObject.userId + '\',\'' 
-			+ userObject.username + '\',\'' + userObject.userSex + '\',\'' + userObject.userAge  + '\',\'' + userObject.userShortBio + "')\"><b>" + userObject.username 
-			+ ", " + "(" + userObject.userSex + ", " + userObject.userAge + ")</b> <br>" + userObject.shortBio + "</div>");
+		if (!userLastMessage) {
+			userLastMessage = "You have not started chatting with this user yet."
+		}
+
+		//console.log("user = " + user);
+		console.log("populating treemap, (" + user.lastTimestamp + ", " + user + ")");
+		// Populate the TreeMap
+		var userTimestamp = user.lastTimestamp;
+		userTimestamps.set(userTimestamp, user);
 	}
+
+	// TreeMap.js is a little unintuitive (the first parameter is the value and the second parameter is the key)
+	userTimestamps.each(function(user, timestamp) {
+		console.log("timestamp = " + timestamp);
+
+		var userId = addEscapeChars(user.userId);
+		var username = addEscapeChars(user.username);
+		var userAge = addEscapeChars(user.userAge);
+		var userSex = addEscapeChars(user.userSex);
+		var userShortBio = addEscapeChars(user.shortBio);
+		var userLastMessage = addEscapeChars(user.lastMessage);
+
+		var userSexSymbol = "&#9794;";
+		if (userSex == "female") {
+			userSexSymbol = "&#9792;";
+		}
+		$("#display-chats").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+			+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"><b>" + username
+			+ "</b>, " + userSexSymbol + ", " + userAge + "<br>" + userLastMessage+ "</div>");
+	});
 
 	$("#active-chat").css("display", "none");
 	$("#display-chats").css("display", "block");
