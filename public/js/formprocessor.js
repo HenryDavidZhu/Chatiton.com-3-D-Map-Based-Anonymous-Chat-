@@ -9,9 +9,15 @@ works by going to your browser and entering the API links below):
 */
 var clusterSource;
 
-// Helper function to add escape characters to single and double quotes of a string
+
+// Helper function to add escape characters to a string
 function addEscapeChars(string) {
-	return string.replace(/'/g, String.raw`\'`).replace(/"/g, String.raw`\"`);
+	return (string + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
+}
+
+// Helper function to remove escape characters of a string
+function removeEscapeChars(string) {
+	return string.replace(/\\"/g, '"');
 }
 
 // Checks if a user has geolocation enabled on their browser
@@ -112,6 +118,7 @@ function visitCity(id, cityName) {
 			var username = addEscapeChars(user.username);
 			var userSex = addEscapeChars(user.sex);
 			var userShortBio = addEscapeChars(user.shortBio);
+
 			$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
 			+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
 			+ ", " + "(" + user.sex + ", " + user.age + ")</b> <br>" + user.shortBio + "</div>");
@@ -133,7 +140,8 @@ function chatView() {
 	$("#city-button").removeClass("active");
 	$("#city-list").css("display", "none");
 	$("#chat-button").addClass("active");
-	$("#chat-list").css("display", "block");	
+	returnToChatList();
+	$("#chat-list").css("display", "block");
 }
 
 // Switch from chat view to city view
@@ -168,7 +176,6 @@ $('#login-form').submit(function (e) {
 		validForm = false;
 	}
 
-	console.log("validForm = " + validForm);
 
 	if (validForm) {
 		if (flying) {
@@ -183,11 +190,23 @@ $('#login-form').submit(function (e) {
 			var age = $("#age").val();
 			var sex = $("#sex").find(":selected").val();
 
+			var userId = addEscapeChars(socket.id);
+			var username = addEscapeChars(username);
+			var userAge = addEscapeChars(age);
+			var userSex = addEscapeChars(sex);
+			var userShortBio = addEscapeChars(bio);
+			
+			var userLastMessage = "";
+
+			date = new Date();
+			console.log("userId = " + userId + ", date.getTime() = " + date.getTime());
+			you = new ChatUser(userId, username, userAge, userSex, userShortBio, userLastMessage, date.getTime());
+
 			// Fade out login menu
 			$("#login-wrapper").fadeOut();
 
 			// Retrieve the user's city
-			$.getJSON('https://api.ipdata.co/?api-key=9d7fbbd2c959422769e2dbfc3293914cff99ec4b2c3e554283ba6cb6', function (data) {
+			$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function (data) {
 				var city = data["city"];
 				var cityKeyToUpdate = "";
 				updateCityNames();
@@ -201,6 +220,10 @@ $('#login-form').submit(function (e) {
 						cityLat = cityObject.geometry.coordinates[1];
 					}
 				});
+
+				// TEST PURPOSES (BECAUSE IPDATA.CO IS NOT FUNCTIONING PROPERLY)
+				city = "Bellevue";
+				cityKeyToUpdate = "Bellevue-125456";
 
 				flying = true;
 				map.flyTo({
@@ -286,13 +309,19 @@ $('#login-form').submit(function (e) {
 						if (listOfUsers) { // See if there are any users in the city
 							for (var i = 0; i < listOfUsers.length; i++) {
 								var user = listOfUsers[i];
-								var userId = addEscapeChars(user.id);
+								var userId = user.id;
+
 								var username = addEscapeChars(user.username);
 								var userSex = addEscapeChars(user.sex);
 								var userShortBio = addEscapeChars(user.shortBio);
+
+								var userSexSymbol = "&#9794;";
+								if (userSex == "female") {
+									userSexSymbol = "&#9792;";
+								}
 								$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
 								+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
-								+ ", " + "(" + user.sex + ", " + user.age + ")</b><br>" + user.shortBio + "</div>");
+								+ "</b>, " + userSexSymbol + ", " + user.age + "<br>" + user.shortBio + "</div>");
 							}
 							var cityId = cityName.split("-")[1];
 							$("#city-list").append("<div class='city-label'>" + featureById[cityId].properties.city.split("-")[0] + ", " + featureById[cityId].properties.country + "</div>");
@@ -324,7 +353,7 @@ $('#login-form').submit(function (e) {
 
 						// Retrieve the number of user in the cluster
 						var clusterUserCount = clusterToNumCities[clusterId];
-						console.log("clusterUserCount = " + clusterUserCount);
+
 						// Display popup onto map
 						var clusterCoordinates = [e.lngLat.lng, e.lngLat.lat];
 						clusterPopup.setLngLat(clusterCoordinates);

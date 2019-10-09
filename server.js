@@ -208,12 +208,15 @@ function userConnect(user) {
     user.on("sendMsg", sendMsg);
 
     function sendMsg(msgData) {
+        // Extract the message content and the sender/receiver information from the data inputted
         var msgContent = msgData[0];
-        var receiverId = msgData[1];
+        var you = msgData[1];
+        var chattingWith = msgData[2];
 
-        console.log("sending message to " + receiverId);
+        console.log("sending message to " + you.id);
+        console.log("message content: " + msgContent);
 
         // Send the message to the receiver
-        io.to(receiverId).emit("receiveMessage", [msgContent, receiverId]);
+        io.to(chattingWith).emit("receiveMessage", [msgContent, you]);
     }
 }

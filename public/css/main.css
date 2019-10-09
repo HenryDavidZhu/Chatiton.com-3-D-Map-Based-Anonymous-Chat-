@@ -269,3 +269,18 @@ input[type="checkbox"] {
 #active-chat {
 	display: none;
 }
+
+.user-msg, .user-msg-receiver {
+	width: 100%;
+	border-bottom: 1px solid rgb(240, 240, 240);
+	padding-top: 7px;
+	padding-bottom: 7px;
+	padding-left: 7px;
+	padding-right: 7px;
+	text-align: left;
+	border-left: 5px solid rgb(40, 40, 40);
+}
+
+.user-msg-receiver {
+	border-left: 5px solid #03fc56;
+}
