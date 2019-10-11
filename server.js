@@ -28,16 +28,6 @@ app.post('/pusher/auth', function(req, res) {
     res.send(auth);
 });
 
-// Initialize Pusher
-var pusher = new Pusher({
-    appId: process.env.PUSHER_APP_ID,
-    key: process.env.PUSHER_APP_KEY,
-    secret: process.env.PUSHER_APP_SECRET,
-    cluster: process.env.PUSHER_APP_CLUSTER,
-    useTLS: true,
-    encryptionMasterKey: process.env.PUSHER_CHANNELS_ENCRYPTION_KEY,
-});
-
 // Defines a connected user, given the following properties: id, username, age, shortBio, sex, city
 function Client(id, username, age, shortBio, sex, city) {
     this.id = id;
@@ -52,6 +42,11 @@ function Client(id, username, age, shortBio, sex, city) {
 function System() {
     this.mapping = {}; // Maps a city to a list of active users (Client object) in that city ([city name] > [Client1, Client2, .... Client N])
     this.idToCity = {}; // Maps a user's id to the city they are chatting from 
+    this.idToIp = {}; // Maps a user's socket.id property to their IP address
+
+    // Users are kicked for 40 minutes if they receive 3 complains in a 5 minute timespan
+    this.idNumReports = {}; // Maps a user (its id) to the number of complains that user has had (within a 5-minute period)
+    this.idLastReport = {}; // Maps a user (its id) to the timetamp of its last report
 }
 
 // Output mapping of cities to active users (for debugging purposes)
@@ -79,6 +74,7 @@ System.prototype.returnCitySizes = function(cityList) {
             citySizes[city] = this.mapping[city]; // Update the list of active users in the city
         }
     }
+
     return citySizes;
 }
 
@@ -95,11 +91,13 @@ System.prototype.getTopCities = function(userId, clusterId, cityList, cityRankin
         if (system.mapping[cityList[i]]) {
             numUsers = system.mapping[cityList[i]].length;
         }
+
         citySizes[cityList[i]] = numUsers;
         totalUsers += numUsers;
     }
 
-    io.to(userId).emit("totalClusterUsers", [clusterId, totalUsers]);
+    // Send a signal to the client containing the total number of users in a cluster
+    io.to(userId).emit("totalClusterUsers", [clusterId, totalUsers]); 
 
     // Sort the list of cities in the cluster
     cityList.sort();
@@ -115,6 +113,7 @@ System.prototype.getTopCities = function(userId, clusterId, cityList, cityRankin
         endIndex = cityList.length - 1;
     }
 
+    // Retrieve the top 10 cities in cityList starting from startIndex's place
     var topKCities = cityList.slice(startIndex, endIndex + 1);
     var topCityMapping = {};
 
@@ -130,6 +129,9 @@ var io = socket(server, { pingTimeout: 63000 }); // Automatically disconnect use
 io.sockets.on("connection", userConnect); // Listen for user connection
 
 function userConnect(user) {
+    var clientIp = user.request.connection._peername.port; // Get the IP address of the uesr
+    console.log("clientIp = " + clientIp);
+
     user.on("initializeUser", connectUser); // When a user submits their profile form, initialize the user into the system
 
     function connectUser(userInfo) {
@@ -172,8 +174,7 @@ function userConnect(user) {
             var userIndex = 0;
 
             for (var i = 0; i < cityList.length; i++) {
-                console.log("cityList[" + i + "].id = " + cityList[i].id);
-                if (cityList[i].id == user.id) {
+                if (cityList[i].id == user.id) { // Found the disconnected user
                     userIndex = i;
                     break;
                 }
@@ -201,6 +202,8 @@ function userConnect(user) {
         var cityList = retrievalData[1];
         var cityRanking = retrievalData[2];
         var pointCount = retrievalData[3];
+
+        // Return the top cities in the cluster
         io.to(user.id).emit("returnTopCities", [clusterId, system.getTopCities(user.id, clusterId, cityList, cityRanking), cityRanking, pointCount]);        
     }
 
@@ -213,15 +216,18 @@ function userConnect(user) {
         var you = msgData[1];
         var chattingWith = msgData[2];
 
-        console.log("sending message to " + you.id);
-        console.log("message content: " + msgContent);
-        console.log("io.sockets.sockets[" + chattingWith + "] = " + io.sockets.sockets[chattingWith]);
         if (io.sockets.sockets[chattingWith] != undefined) {
             // Send the message to the receiver
             io.to(chattingWith).emit("receiveMessage", [msgContent, you]);
         } else {
+            // The user has disconnected, send a signal to the user indicating that
             io.to(you.id).emit("disconnectedUser", chattingWith);
         }
+    }
 
+    user.on("ipMapping", updateIp);
+
+    function updateIp(ipAddress) {
+        system.idToIp[user.id] = ipAddress;
     }
 }

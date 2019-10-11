@@ -35,11 +35,12 @@ function ChatSession() {
 
 // Helper function to update all the messages exchanged within a chat
 function updateChat(userId) {
-	if (userId in chats) {
-		var chatList = chats[userId];
-		console.log("chatList = " + chatList);
+	if (userId in chats) { // Go through every chat between each user
+		var chatList = chats[userId]; // Get the list of messages exchanged with the user (chat history)
 
-		$("#chat-panel").empty();
+		$("#chat-panel").empty(); // Clear the list of messages in the panel
+
+		// Go through every message in the chat history
 		for (var i = 0; i < chatList.length; i++) {
 			var chatMsg = chatList[i];
 
@@ -67,6 +68,7 @@ function updateChat(userId) {
 
 			var fullTimeString = day + ", " + hrs + ":" + minutes + " " + timeLabel;
 
+			// Display the messages
 			if (chatMsg.senderId == socket.id) { // Messages you sent
 				$("#chat-panel").append("<div class='user-msg'><div class='inner'>" + chatMsg.msgContent + "<br><span class='timestamp'>" + fullTimeString 
 					+ "</span></div></div>");
@@ -74,26 +76,21 @@ function updateChat(userId) {
 				$("#chat-panel").append("<div class='user-msg-receiver'><div class='inner'>" + chatMsg.msgContent + "<br><span class='timestamp'>" + fullTimeString
 					+ "</span></div></div>");
 			}
-
-			$('#chat-panel').animate({ scrollTop: 300 }, 200);
 		}
 	}
 }
 
 // Opens the chat dialog 
 function openChat(userId, username, userSex, userAge, shortBio) {
-	// Structure of userProperties:
-	// [user.id, user.username, user.sex, user.age, user.shortBio]
-	// Shift the tab from "Chats" to "City"
+	// Open up the chatting interface
 	$("#city-button").removeClass("active");
 	$("#city-list").css("display", "none");
 	$("#chat-button").addClass("active");
 
-	// Empty active-chat
+	// Empty the list of chats
 	$("#display-chats").empty();
 
 	// Insert chat messages into chat box
-
 	var userSexSymbol = "&#9794;";
 	if (userSex == "female") {
 		userSexSymbol = "&#9792;";
@@ -105,9 +102,10 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 		var reportUser = confirm("Is this user a spammer or sending abusive/inappropriate messages? If so, press \"Ok\" to report this user.");
 
 		if (reportUser) {
-			socket.emit("reportUser", userId);
+			socket.emit("reportUser", userId); // Send a singal to the server indicating that a user is behaving
 		}
 	});
+
 	chattingWith = userId; 
 
 	date = new Date();
@@ -120,13 +118,14 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 
 	updateChat(userId);
 
+	// Show the chatting interface
 	$("#chat-list").css("display", "block");
 	$("#active-chat").css("display", "block");
 }
 
 $("#send-msg").submit(function(e) {
 	e.preventDefault(); // Prevents the page from reloading when the user submits a form
-	var msgText = $("#msg-text").val();
+	var msgText = $("#msg-text").val(); // Retrieve the message the uesr is going to send
 
 	// Ensure that bots are deflected by checking if the honeypot inputs are left blank
 	if ($("#aaifh4712").val().length != 0 && !$("#aaifh4772").val().length != 0) {
@@ -138,12 +137,12 @@ $("#send-msg").submit(function(e) {
 			if (socket.id != chattingWith) { // If a user is sending a message to him or herself, there's no need to use up server memory 
 				socket.emit("sendMsg", [msgText, you, chattingWith]);
 
-				if (usersChattingWith[chattingWith]) {
+				if (usersChattingWith[chattingWith]) { // Set the last message
 					usersChattingWith[chattingWith].userLastMessage = new Message(socket.id, date.getTime(), msgText);
 				}
 			}
 
-			// Add that message to the chats list
+			// Add the message to the chats list
 			date = new Date();
 			if (chats[chattingWith]) {
 				chats[chattingWith].push(new Message(socket.id, date.getTime(), msgText));
@@ -154,9 +153,9 @@ $("#send-msg").submit(function(e) {
 			// Clear the chat input
 			$("#msg-text").val("");
 
-			updateChat(chattingWith);
+			updateChat(chattingWith); // Update the chat
 		} else {
-			alert("Your message must be between 1 and 300 characters long.");
+			alert("Your message must be between 1 and 300 characters long."); // Notify user of an invalid input
 		}
 	}
 });
@@ -260,7 +259,7 @@ function receiveMsg(data) {
 	
 	setTimeout(function() {
 	   $("#notification-modal").css("display", "none");
-	}, 7000);
+	}, 137000);
 
 	// If the id of the user you're currently chatting with matches the sender of the message, update the chat panel
 	if (chattingWith == userId) {

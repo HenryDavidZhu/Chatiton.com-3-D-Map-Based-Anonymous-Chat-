@@ -213,6 +213,12 @@ $('#login-form').submit(function (e) {
 			// Retrieve the user's city
 			$.getJSON('https://api.ipdata.co/?api-key=982a1375474d4f171923e408626833ab269d418e63036d66243c8059', function (data) {
 				var city = data["city"];
+				var ip = data["ip"];
+
+				if (ip) { // Check whether the ip address is on the kicklist or banlist
+					socket.emit("ipMapping", ip); // Send a signal to the server to map the 
+				}
+				
 				var cityKeyToUpdate = "";
 				updateCityNames();
 
