@@ -27,22 +27,56 @@ function Message(senderId, timestamp, msgContent) {
 	this.msgContent = msgContent;
 }
 
+// Defines a class to represent a chat session between two users
+function ChatSession() {
+	this.messageList = []; // List of Message objects
+	this.opened = false;
+}
+
 // Helper function to update all the messages exchanged within a chat
 function updateChat(userId) {
 	if (userId in chats) {
 		var chatList = chats[userId];
+		console.log("chatList = " + chatList);
 
 		$("#chat-panel").empty();
 		for (var i = 0; i < chatList.length; i++) {
 			var chatMsg = chatList[i];
 
-			if (chatMsg.senderId == socket.id) { // Messages you sent
-				$("#chat-panel").append("<div class='user-msg'>" + chatMsg.msgContent + "</div>");
-			} else { // Messages that you didn't sent
-				$("#chat-panel").append("<div class='user-msg-receiver'>" + chatMsg.msgContent + "</div>");
+			// Convert time in miliseconds to a readable format
+			var timestampString = new Date(chatMsg.timestamp).toString();
+			var timestampComponents = timestampString.split(" ");
+			var day = timestampComponents[0];
+			var time = timestampComponents[4];
+			var timeComponents = time.split(":");
+			var timeLabel = "am";
+			var hrs = parseInt(timeComponents[0]);
+			var minutes = parseInt(timeComponents[1]);
+
+			if (hrs >= 12) {
+				timeLabel = "pm";
+
+				if (hrs > 12) {
+					hrs -= 12;
+				}
 			}
+
+			if (minutes < 10) {
+				minutes = "0" + String(minutes);
+			}
+
+			var fullTimeString = day + ", " + hrs + ":" + minutes + " " + timeLabel;
+
+			if (chatMsg.senderId == socket.id) { // Messages you sent
+				$("#chat-panel").append("<div class='user-msg'><div class='inner'>" + chatMsg.msgContent + "<br><span class='timestamp'>" + fullTimeString 
+					+ "</span></div></div>");
+			} else { // Messages that you didn't sent
+				$("#chat-panel").append("<div class='user-msg-receiver'><div class='inner'>" + chatMsg.msgContent + "<br><span class='timestamp'>" + fullTimeString
+					+ "</span></div></div>");
+			}
+
+			$('#chat-panel').animate({ scrollTop: 300 }, 200);
 		}
-		console.log("chats[" + userId + "] = " + chats[userId].length);
 	}
 }
 
@@ -64,20 +98,26 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 	if (userSex == "female") {
 		userSexSymbol = "&#9792;";
 	}
-	$("#user-bar").html("<button onclick=\"returnToChatList()\">back</button>&nbsp;<b>" + username + "</b>, " + userSexSymbol + ", " + userAge + "<br>" + shortBio);
+	$("#user-bar").html("<button onclick=\"returnToChatList()\">back</button>&nbsp;<b>" + username + "</b>, " + userSexSymbol + ", " + userAge  + " <button class='report' id='report-" + userId + "'>report</button><br>" + shortBio);
 
+	// Report a user
+	$("#report-" + userId).click(function() {
+		var reportUser = confirm("Is this user a spammer or sending abusive/inappropriate messages? If so, press \"Ok\" to report this user.");
+
+		if (reportUser) {
+			socket.emit("reportUser", userId);
+		}
+	});
 	chattingWith = userId; 
 
 	date = new Date();
 	// Update the map of users you've been chatting with (usersChattingWith) IF necessary
 	if (!(chattingWith in usersChattingWith)) {
-		console.log("userId = " + userId + ", date.getTime() = " + date.getTime());
 		usersChattingWith[userId] = new ChatUser(userId, username, userSex, userAge, shortBio, "", date.getTime());
 	} else {
 		usersChattingWith[userId].lastTimestamp = date.getTime();
 	}
 
-	console.log("userId = " + userId);
 	updateChat(userId);
 
 	$("#chat-list").css("display", "block");
@@ -86,15 +126,35 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 
 $("#send-msg").submit(function(e) {
 	e.preventDefault(); // Prevents the page from reloading when the user submits a form
+	var msgText = $("#msg-text").val();
 
-	// Check if a chatting channel established 
-	socket.emit("sendMsg", [$("#msg-text").val(), you, chattingWith]);
+	// Ensure that bots are deflected by checking if the honeypot inputs are left blank
+	if ($("#aaifh4712").val().length != 0 && !$("#aaifh4772").val().length != 0) {
+		alert("Hmm... abnormal behavior was detected. Please try again.")
+	}
+	else {
+		if (msgText && msgText.length <= 300) {
+			// Check if a chatting channel established 
+			if (socket.id != chattingWith) { // If a user is sending a message to him or herself, there's no need to use up server memory 
+				socket.emit("sendMsg", [msgText, you, chattingWith]);
+			}
 
-	// Add that message to the chats list
-	date = new Date();
-	chats[chattingWith].push(new Message(socket.id, date.getTime(), $("#msg-text").val()));
+			// Add that message to the chats list
+			date = new Date();
+			if (chats[chattingWith]) {
+				chats[chattingWith].push(new Message(socket.id, date.getTime(), msgText));
+			} else {
+				chats[chattingWith] = [new Message(socket.id, date.getTime(), msgText)];
+			} 
 
-	updateChat(chattingWith);
+			// Clear the chat input
+			$("#msg-text").val("");
+
+			updateChat(chattingWith);
+		} else {
+			alert("Your message must be between 1 and 300 characters long.");
+		}
+	}
 });
 
 // Returns back to the list of users you are chatting with
@@ -137,11 +197,24 @@ function returnToChatList() {
 		if (userSex == "female") {
 			userSexSymbol = "&#9792;";
 		}
-		console.log("userShortBio: ");
-		console.log(userShortBio);
-		$("#display-chats").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
-			+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"><b>" + username
-			+ "</b>, " + userSexSymbol + ", " + userAge + "<br>" + removeEscapeChars(userLastMessage) + "</div>");
+
+		$("#display-chats").append("<div class='user-panel' id='" + userId + "\'" + "><div class='user-panel-left'" + '><div class="left" onclick="openChat(\'' + userId + '\',\'' 
+			+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
+			+ "</b>, " + userSexSymbol + ", " + userAge + "<br>" + removeEscapeChars(userLastMessage) + "</div></div><div class='user-panel-close'><button id='" + userId 
+			+ "-close'>&times;</button></div></div>");
+		
+		// Delete the chat when user clicks the delete chat button
+		$("#" + userId + "-close").click(function() {
+			// Delete the chat from the local storage
+			var deleteChat = confirm("This will permanently delete your chat with " + username + ". Proceed?");
+
+			if (deleteChat) {
+				delete chats[chattingWith];
+				delete usersChattingWith[chattingWith];
+				$("#chat-panel").empty();
+				returnToChatList();
+			}
+		});
 	});
 
 	$("#active-chat").css("display", "none");
@@ -176,11 +249,7 @@ function receiveMsg(data) {
 	}
 
 	// Update the map of users you've been chatting with (usersChattingWith) IF necessary
-	console.log("sender = " + sender + ", sender.id = " + sender.id);
-	console.log("chattingWith in usersChattingWith: " + (chattingWith in usersChattingWith));
-	usersChattingWith[senderId] = sender;
-	
-	console.log("usersChattingWith[senderId] = usersChattingWith[" + senderId + "] = " + usersChattingWith[senderId]);
+	usersChattingWith[senderId] = sender;	
 	usersChattingWith[senderId].lastMessage = msgContent;
 	usersChattingWith[senderId].lastTimestamp = date.getTime();
 
@@ -189,7 +258,23 @@ function receiveMsg(data) {
 	   $("#notification-modal").css("display", "none");
 	}, 7000);
 
-	updateChat(userId);
+	// If the id of the user you're currently chatting with matches the sender of the message, update the chat panel
+	if (chattingWith == userId) {
+		updateChat(userId);
+	}
+}
 
-	console.log("received msg from " + senderId);
+// When you try to send a message to a user but he or she disconnected
+socket.on("disconnectedUser", disconnectedUser);
+
+function disconnectedUser(chattingWith) {
+	delete chats[chattingWith];
+	delete usersChattingWith[chattingWith];
+
+	// Empty the chat panel
+	$("#display-chats").empty();
+
+	alert("The user you are chatting with disconnected :(.")
+
+	returnToChatList();
 }

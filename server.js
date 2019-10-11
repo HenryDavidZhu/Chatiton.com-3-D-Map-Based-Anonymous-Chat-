@@ -215,8 +215,13 @@ function userConnect(user) {
 
         console.log("sending message to " + you.id);
         console.log("message content: " + msgContent);
+        console.log("io.sockets.sockets[" + chattingWith + "] = " + io.sockets.sockets[chattingWith]);
+        if (io.sockets.sockets[chattingWith] != undefined) {
+            // Send the message to the receiver
+            io.to(chattingWith).emit("receiveMessage", [msgContent, you]);
+        } else {
+            io.to(you.id).emit("disconnectedUser", chattingWith);
+        }
 
-        // Send the message to the receiver
-        io.to(chattingWith).emit("receiveMessage", [msgContent, you]);
     }
 }

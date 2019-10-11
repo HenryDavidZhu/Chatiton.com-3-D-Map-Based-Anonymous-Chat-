@@ -95,8 +95,13 @@ h1 {
 	border-bottom: 1px solid rgb(240, 240, 240);
 	text-align: left;
 	line-height: 140%;
-	display: table;
+	display: flex;
 	width: 100%;
+	position: relative;
+	text-align: left;
+}
+.city-panel {
+	display: block;
 }
 .city-panel:hover, .user-panel:hover {
 	cursor: grab;
@@ -128,8 +133,8 @@ h1 {
 	width: 100%;
 	max-width: 400px;
 	border-top: 1px solid rgb(240, 240, 240);
-	padding-top: 5px;
-	padding-bottom: 5px;
+	height: 25px;
+	line-height: 25px;
 	padding-left: 5px;
 	padding-right: 5px;
 	text-align: left;
@@ -197,8 +202,8 @@ input[type="checkbox"] {
 	bottom: 0;
 	left: 0;
 	border-top: 1px solid rgb(220, 220, 220);
-	padding-top: 5px;
-	padding-bottom: 5px;
+	height: 43px;
+	line-height: 43px;
 }
 #chat-list #send-msg input[type="text"] {
 	flex: 1;
@@ -218,6 +223,7 @@ input[type="checkbox"] {
 	height: 27px;
 	border-radius: 50%;
 	vertical-align: center;
+	padding-left: 5px;
 }
 #chat-list #send-msg #emoji-button {
 	background: transparent;
@@ -226,6 +232,7 @@ input[type="checkbox"] {
 	border: 0;
 	font-size: 22px;
 	padding: 0;
+	padding-right: 5px;
 }
 #chat-list #send-msg #emoji-button:hover {
 	cursor: pointer;
@@ -273,14 +280,74 @@ input[type="checkbox"] {
 .user-msg, .user-msg-receiver {
 	width: 100%;
 	border-bottom: 1px solid rgb(240, 240, 240);
+	text-align: right;
+	word-wrap: break-word;
+}
+
+.inner {
 	padding-top: 7px;
 	padding-bottom: 7px;
 	padding-left: 7px;
 	padding-right: 7px;
-	text-align: left;
-	border-left: 5px solid rgb(40, 40, 40);
+	border-right: 5px solid rgb(40, 40, 40);
 }
 
 .user-msg-receiver {
 	border-left: 5px solid #03fc56;
+	text-align: left;
+	word-wrap: break-word;
+}
+
+.timestamp {
+	font-size: 13px;
+}
+
+/* to deflect potential spambots */
+#aaifh471, #aaifh477 {
+	display: none;
+}
+#aaifh4712, #aaifh4772 {
+	display: none;
+}
+
+#chat-list {
+	height: calc(100% - 83px); /* fill up the remaining height that's left */
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+#city-list {
+	height: calc(100% - 40px - 25px);
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+.user-panel-left {
+    float: right;
+    width: 100%;
+}
+.left {
+	margin-right: 40px;
+	overflow: hidden;
+}
+
+.user-panel-close {
+    float: right;
+    width: 40px;
+    margin-right: calc(-100%+40px);
+}
+.user-panel-close button {
+	border-radius: 50%;
+	border: 0;
+	background: rgb(240, 240, 240);
+	color: black;
+	font-size: 12px;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.16), 0 1px 2px rgba(0,0,0,0.23);
+}
+.user-panel-close button:hover {
+	cursor: grab;
+}
+
+.report {
+	background: rgb(240, 240, 240) !important;
+	color: black !important;
 }

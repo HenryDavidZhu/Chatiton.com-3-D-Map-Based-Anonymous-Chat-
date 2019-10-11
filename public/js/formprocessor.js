@@ -158,6 +158,12 @@ $('#login-form').submit(function (e) {
 	e.preventDefault(); // Prevents page from refreshing
 	var validForm = true; // Second layer of validation incase user uses inspect element to modify form content
 
+	// Ensure that bots are deflected by checking if the honeypot inputs are left blank
+	if ($("#aaifh471").val().length != 0 && !$("#aaifh477").val().length == 0) {
+		alert("Hmm... abnormal behavior was detected. Please try again.")
+		validForm = false;
+	}
+
 	// Ensure that the username is between 4 and 20 characters
 	if ($("#username").val().length < 4 || $("#username").val().length > 20) {
 		alert("Make sure your username is between 4 and 20 characters.");
@@ -199,7 +205,6 @@ $('#login-form').submit(function (e) {
 			var userLastMessage = "";
 
 			date = new Date();
-			console.log("userId = " + userId + ", date.getTime() = " + date.getTime());
 			you = new ChatUser(userId, username, userAge, userSex, userShortBio, userLastMessage, date.getTime());
 
 			// Fade out login menu
@@ -220,10 +225,6 @@ $('#login-form').submit(function (e) {
 						cityLat = cityObject.geometry.coordinates[1];
 					}
 				});
-
-				// TEST PURPOSES (BECAUSE IPDATA.CO IS NOT FUNCTIONING PROPERLY)
-				city = "Bellevue";
-				cityKeyToUpdate = "Bellevue-125456";
 
 				flying = true;
 				map.flyTo({
@@ -319,7 +320,7 @@ $('#login-form').submit(function (e) {
 								if (userSex == "female") {
 									userSexSymbol = "&#9792;";
 								}
-								$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+								$("#city-list").append("<div class='city-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
 								+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
 								+ "</b>, " + userSexSymbol + ", " + user.age + "<br>" + user.shortBio + "</div>");
 							}
