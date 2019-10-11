@@ -137,6 +137,10 @@ $("#send-msg").submit(function(e) {
 			// Check if a chatting channel established 
 			if (socket.id != chattingWith) { // If a user is sending a message to him or herself, there's no need to use up server memory 
 				socket.emit("sendMsg", [msgText, you, chattingWith]);
+
+				if (usersChattingWith[chattingWith]) {
+					usersChattingWith[chattingWith].userLastMessage = new Message(socket.id, date.getTime(), msgText);
+				}
 			}
 
 			// Add that message to the chats list

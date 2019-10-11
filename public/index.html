@@ -87,7 +87,28 @@
 		</div>
 
 		<!-- a quick script to make #chat-panel occupy the remaining height in #active-chat -->
+		<!-- The core Firebase JS SDK is always required and must be listed first -->
+		<script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js"></script>
+
+		<!-- TODO: Add SDKs for Firebase products that you want to use
+		     https://firebase.google.com/docs/web/setup#available-libraries -->
+		<script src="https://www.gstatic.com/firebasejs/7.2.0/firebase-analytics.js"></script>
+
 		<script>
+		  // Your web app's Firebase configuration
+		  var firebaseConfig = {
+		    apiKey: "AIzaSyB3MN7U-1VzNIs2jCj5IyKR0AAZT6BRc9Y",
+		    authDomain: "chatiton-3ac12.firebaseapp.com",
+		    databaseURL: "https://chatiton-3ac12.firebaseio.com",
+		    projectId: "chatiton-3ac12",
+		    storageBucket: "chatiton-3ac12.appspot.com",
+		    messagingSenderId: "101472257785",
+		    appId: "1:101472257785:web:e97d1893a4ca1513cdc428",
+		    measurementId: "G-BDH1FFWPJJ"
+		  };
+		  // Initialize Firebase
+		  firebase.initializeApp(firebaseConfig);
+		  firebase.analytics();
 		</script>
 		<script src="js/data-structures/treemap.js"></script>
 		<script src="js/require.js"></script>
