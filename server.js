@@ -1,13 +1,11 @@
-// Import required utilities (express, socketio, uniqid, mongo)
+// Import required utilities/modules
 var express = require("express");
 var socket = require("socket.io");
-var uniqid = require("uniqid");
-var crypto = require("crypto");
-var algorithm = "aes-256-cbc";
-var {Heap} = require("heap-js");
+
 var bodyParser = require('body-parser');
 var cors = require('cors');
-var Pusher = require('pusher');
+var SocketAntiSpam = require("socket-anti-spam");
+
 require('dotenv').config({ path: 'variable.env' });
 
 // Initialize Node.JS application
@@ -126,11 +124,17 @@ System.prototype.getTopCities = function(userId, clusterId, cityList, cityRankin
 
 var system = new System(); // Initialize the site's networking system
 var io = socket(server, { pingTimeout: 63000 }); // Automatically disconnect user after 63s of inactivity
+const socketAntiSpam = new SocketAntiSpam({
+    banTime:            30,         // Ban time in minutes
+    kickThreshold:      14,          // User gets kicked after this many spam score
+    kickTimesBeforeBan: 1,          // User gets banned after this many kicks
+    banning:            true,       // Uses temp IP banning after kickTimesBeforeBan
+    io:                 io,  // Bind the socket.io variable
+});
 io.sockets.on("connection", userConnect); // Listen for user connection
 
 function userConnect(user) {
     var clientIp = user.request.connection._peername.port; // Get the IP address of the uesr
-    console.log("clientIp = " + clientIp);
 
     user.on("initializeUser", connectUser); // When a user submits their profile form, initialize the user into the system
 
@@ -216,6 +220,7 @@ function userConnect(user) {
         var you = msgData[1];
         var chattingWith = msgData[2];
 
+        // Increase the spam score
         if (io.sockets.sockets[chattingWith] != undefined) {
             // Send the message to the receiver
             io.to(chattingWith).emit("receiveMessage", [msgContent, you]);
@@ -225,9 +230,33 @@ function userConnect(user) {
         }
     }
 
+    // Map a user's id to his or her's ip address
     user.on("ipMapping", updateIp);
 
     function updateIp(ipAddress) {
         system.idToIp[user.id] = ipAddress;
     }
+
+    // When a user is reported
+    user.on("reportUser", reportUser);
+
+    function reportUser(userIp) {
+        var userIpAddress = system.idToIp[userIp];
+    }
 }
+
+// Call functions with created reference 'socketAntiSpam'
+socketAntiSpam.event.on('ban', data => {
+    // Do stuff
+    console.log(user.id + " banned");
+});
+
+socketAntiSpam.event.on('spamscore', (socket, data) => {
+  // We have the socket var that received a new spamscore update
+
+  // The second parameter is a object that was binded to the socket with some extra information
+  // It's how socket-anti-spam keeps track of sockets and their states
+
+  // If you want the spamscore you can get it via:
+  console.log(data.score)
+})

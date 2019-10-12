@@ -77,6 +77,12 @@ function updateChat(userId) {
 					+ "</span></div></div>");
 			}
 		}
+
+		console.log($("#chat-list")[0]);
+		var activeChat = document.getElementById("chat-list");
+		activeChat.scrollTop = activeChat.scrollHeight;
+		$('#chat-list').scrollTop($('#chat-list')[0].scrollHeight);
+		console.log($("#chat-list").css("scrollTop"));
 	}
 }
 
@@ -102,7 +108,7 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 		var reportUser = confirm("Is this user a spammer or sending abusive/inappropriate messages? If so, press \"Ok\" to report this user.");
 
 		if (reportUser) {
-			socket.emit("reportUser", userId); // Send a singal to the server indicating that a user is behaving
+			socket.emit("reportUser", userId); // Send a singal to the server indicating that a user is behaving inappropriately
 		}
 	});
 
