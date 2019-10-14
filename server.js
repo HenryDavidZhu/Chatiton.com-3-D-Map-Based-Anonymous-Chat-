@@ -6,7 +6,6 @@ var bodyParser = require('body-parser');
 var cors = require('cors');
 var SocketAntiSpam = require("socket-anti-spam");
 
-require('dotenv').config({ path: 'variable.env' });
 
 // Initialize Node.JS application
 var app = express();
