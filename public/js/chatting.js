@@ -108,7 +108,7 @@ function openChat(userId, username, userSex, userAge, shortBio) {
 		var reportUser = confirm("Is this user a spammer or sending abusive/inappropriate messages? If so, press \"Ok\" to report this user.");
 
 		if (reportUser) {
-			socket.emit("reportUser", userId); // Send a singal to the server indicating that a user is behaving inappropriately
+			socket.emit("reportUser", [socket.id, userId]); // Send a singal to the server indicating that a user is behaving inappropriately
 		}
 	});
 
@@ -286,4 +286,30 @@ function disconnectedUser(chattingWith) {
 	alert("The user you are chatting with disconnected :(.")
 
 	returnToChatList();
+}
+
+// When a user needs to be kicked for spamming messages
+socket.on("kick", kickUser);
+
+function kickUser() {
+	alert("Our spam detection system has indicated that you are spamming. You have been kicked. You have 3 chances in total before"
+		+ " you get temp banned for 30 minutes.");
+	window.location.replace("http://localhost:3000/");
+}
+
+// When a user needs to be kicked after being reported 4 times
+socket.on("reportKick", reportKickUser);
+
+function reportKickUser() {
+	alert("During this chatting session, you have been reported 4 times for inappropriate behavior. You have been kicked. You have 3 choices in total before"
+		+ " you get temp banned for 30 minutes.");
+	window.location.replace("http://localhost:3000/");
+}
+
+// When a user needs to be temp banned for spamming messages
+socket.on("ban", banUser);
+
+function banUser() {
+	alert("Due to what was perceived as inappropriate behavior from you, you have been temporarily banned from chatiton.com for 35 minutes.");
+	window.location.replace("http://localhost:3000/");
 }

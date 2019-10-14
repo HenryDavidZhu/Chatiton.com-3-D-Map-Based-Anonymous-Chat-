@@ -42,9 +42,10 @@ function System() {
     this.idToCity = {}; // Maps a user's id to the city they are chatting from 
     this.idToIp = {}; // Maps a user's socket.id property to their IP address
 
-    // Users are kicked for 40 minutes if they receive 3 complains in a 5 minute timespan
-    this.idNumReports = {}; // Maps a user (its id) to the number of complains that user has had (within a 5-minute period)
-    this.idLastReport = {}; // Maps a user (its id) to the timetamp of its last report
+    // Users are kicked if they receive 4 complains 
+    // After 4 kicks, users are temp banned for 30 minutes
+    this.ipNumReports = {}; // Maps a user (its id) to the number of complains that user has had 
+    this.ipNumKicks = {}; // The number of kicks (FROM REPORTING) a user has had
 }
 
 // Output mapping of cities to active users (for debugging purposes)
@@ -125,9 +126,9 @@ System.prototype.getTopCities = function(userId, clusterId, cityList, cityRankin
 var system = new System(); // Initialize the site's networking system
 var io = socket(server, { pingTimeout: 63000 }); // Automatically disconnect user after 63s of inactivity
 const socketAntiSpam = new SocketAntiSpam({
-    banTime:            30,         // Ban time in minutes
-    kickThreshold:      14,          // User gets kicked after this many spam score
-    kickTimesBeforeBan: 1,          // User gets banned after this many kicks
+    banTime:            35,         // Ban time in minutes
+    kickThreshold:      8,          // User gets kicked after this many spam score
+    kickTimesBeforeBan: 3,          // User gets banned after this many kicks
     banning:            true,       // Uses temp IP banning after kickTimesBeforeBan
     io:                 io,  // Bind the socket.io variable
 });
@@ -139,6 +140,16 @@ function userConnect(user) {
     user.on("initializeUser", connectUser); // When a user submits their profile form, initialize the user into the system
 
     function connectUser(userInfo) {
+        // Check if the user is banned
+        const bans = socketAntiSpam.getBans()
+
+        bans.then(function(result) {
+            console.log("result = " + result);
+            if (result.includes(user.id)) {
+                io.to(user.id).emit("ban", true); // Signal to the user that he has been temporarily banned
+            }
+        });
+
         // Retrieve the user's information: username, age, shortBio, sex, and the city the user is in
     	var username = userInfo[0];
     	var age = userInfo[1];
@@ -166,9 +177,15 @@ function userConnect(user) {
     user.on("disconnect", userDisconnect);
 
     function userDisconnect() {
+        console.log(user.id + " disconnected.");
+        var userId = user.id;
         // Remove all associations to the disconnected user server-side
+        delete system.idToIp[userId];
+
         // Retrieve the city of that user
-        var userCity = system.idToCity[user.id];
+        var userCity = system.idToCity[userId];
+
+        delete system.idToCity[userId];
 
         // Search system.mapping to find the list of clients in the user's city
         var cityList = system.mapping[userCity];
@@ -178,7 +195,7 @@ function userConnect(user) {
             var userIndex = 0;
 
             for (var i = 0; i < cityList.length; i++) {
-                if (cityList[i].id == user.id) { // Found the disconnected user
+                if (cityList[i].id == userId) { // Found the disconnected user
                     userIndex = i;
                     break;
                 }
@@ -240,16 +257,35 @@ function userConnect(user) {
     // When a user is reported
     user.on("reportUser", reportUser);
 
-    function reportUser(userIp) {
-        var userIpAddress = system.idToIp[userIp];
+    function reportUser(reportData) {
+        var reporterIp = system.idToIp(reportData[0]); // Ip of the user that is reporting another user
+        var userId = reportData[1]; // Id of the user that is being reported
+
+        var userIpAddress = system.idToIp[userId];
+        console.log("user w/ id " + userId + ", ip address = " + userIpAddress + " reported.");
+
+        if (userIpAddress in system.ipNumReports) {
+            system.ipNumReports[userIpAddress].add(reporterIp);
+
+            if (system.ipNumReports[userIpAddress].length == 4) { // Send a signal to the user that he or she is kicked
+                console.log(userIpAddress + " will be kicked.");
+                io.to(userId).emit("reportKick", true);
+            }
+        } else {
+            system.ipNumReports[userIpAddress] = new Set();
+            system.ipNumReports[userIpAddress].add(reporterIp); 
+        }
     }
 }
 
 // Call functions with created reference 'socketAntiSpam'
-socketAntiSpam.event.on('ban', data => {
-    // Do stuff
-    console.log(user.id + " banned");
+socketAntiSpam.event.on('ban', (socket, data) => {
+    io.to(socket.id).emit("ban", true);
 });
+
+socketAntiSpam.event.on('kick', (socket, data) => {
+    io.to(socket.id).emit("kick", true);
+})
 
 socketAntiSpam.event.on('spamscore', (socket, data) => {
   // We have the socket var that received a new spamscore update
@@ -258,5 +294,5 @@ socketAntiSpam.event.on('spamscore', (socket, data) => {
   // It's how socket-anti-spam keeps track of sockets and their states
 
   // If you want the spamscore you can get it via:
-  console.log(data.score)
+  console.log(socket.id + ": " + data.score);
 })
