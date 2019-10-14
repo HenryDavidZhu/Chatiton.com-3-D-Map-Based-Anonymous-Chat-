@@ -4,6 +4,7 @@ var currentRoom = "";
 var securityLevel = 2048;
 var usersChattingWith = {}; // A map of users you have been chatting with (id > ChatUser Object)
 var chats = {}; // A map of the ids of the users you have been chatting with to a list of messages within that chat
+var unopenedChats = []; // A list of the chats still to be opened
 var userTimestamps = new TreeMap(); // TreeMap that maps the latest timestamps of the messages sent between a users (timestamp > ChatUser Object)
 var date = new Date(); // Date object used to timestamp messages and when a user has opened a chat with a new user
 var you; // ChatUser Object describing who you are :D!
@@ -88,9 +89,16 @@ function updateChat(userId) {
 
 // Opens the chat dialog 
 function openChat(userId, username, userSex, userAge, shortBio) {
+	var indexToDelete = unopenedChats.indexOf(userId);
+
+	if (indexToDelete != -1) {
+		unopenedChats.splice(indexToDelete, 1);
+	}
+
 	// Open up the chatting interface
 	$("#city-button").removeClass("active");
 	$("#city-list").css("display", "none");
+	$("#display-chats").css("display", "none");
 	$("#chat-button").addClass("active");
 
 	// Empty the list of chats
@@ -207,10 +215,21 @@ function returnToChatList() {
 			userSexSymbol = "&#9792;";
 		}
 
-		$("#display-chats").append("<div class='user-panel' id='" + userId + "\'" + "><div class='user-panel-left'" + '><div class="left" onclick="openChat(\'' + userId + '\',\'' 
-			+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
-			+ "</b>, " + userSexSymbol + ", " + userAge + "<br>" + removeEscapeChars(userLastMessage) + "</div></div><div class='user-panel-close'><button id='" + userId 
-			+ "-close'>&times;</button></div></div>");
+		console.log("unopenedChats = " + unopenedChats);
+		console.log("userId = " + userId);
+		console.log("userId in unopenedChats = " + (unopenedChats.includes(userId)));
+
+		if (unopenedChats.includes(userId)) {
+			$("#display-chats").append("<div class='user-panel' id='" + userId + "\'" + "><div class='user-panel-left'" + '><div class="left" onclick="openChat(\'' + userId + '\',\'' 
+				+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
+				+ "</b>, " + userSexSymbol + ", " + userAge + "<br><b>" + removeEscapeChars(userLastMessage) + "</b></div></div><div class='user-panel-close'><button id='" + userId 
+				+ "-close'>&times;</button></div></div>");
+		} else {
+			$("#display-chats").append("<div class='user-panel' id='" + userId + "\'" + "><div class='user-panel-left'" + '><div class="left" onclick="openChat(\'' + userId + '\',\'' 
+				+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
+				+ "</b>, " + userSexSymbol + ", " + userAge + "<br>" + removeEscapeChars(userLastMessage) + "</div></div><div class='user-panel-close'><button id='" + userId 
+				+ "-close'>&times;</button></div></div>");			
+		}
 		
 		// Delete the chat when user clicks the delete chat button
 		$("#" + userId + "-close").click(function() {
@@ -238,6 +257,11 @@ function receiveMsg(data) {
 	var sender = data[1];
 	var senderId = data[1].id;
 
+	if (!(unopenedChats.includes(senderId))) {
+		console.log(senderId + " -> unopenedChats");
+		unopenedChats.push(senderId);
+	}
+
 	var userId = addEscapeChars(sender.id);
 	var username = addEscapeChars(sender.username);
 	var userAge = addEscapeChars(sender.userAge);
@@ -245,10 +269,10 @@ function receiveMsg(data) {
 	var userShortBio = addEscapeChars(sender.shortBio);
 	var userLastMessage = sender.lastMessage;
 
+	// Hide out the previous modal if necessary
 	// Show the notificaiton modal
-	$("#notification-modal").html("<a onclick='openChat(\'" + userId + '\',\'' 
-			+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio 
-			+ ")'>You received a message from <b>" + sender.username + "</b>!");
+	$("#notification-modal").html("<a href='#' onclick=\"openChat('" + userId + '\',\'' 
+				+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"> You received a message from <b>" + username + "</b>!");
 	$("#notification-modal").css("display", "block");
 
 	if (senderId in chats) {
@@ -261,15 +285,18 @@ function receiveMsg(data) {
 	usersChattingWith[senderId] = sender;	
 	usersChattingWith[senderId].lastMessage = msgContent;
 	usersChattingWith[senderId].lastTimestamp = date.getTime();
-
 	
 	setTimeout(function() {
 	   $("#notification-modal").css("display", "none");
-	}, 137000);
+	}, 5000);
 
 	// If the id of the user you're currently chatting with matches the sender of the message, update the chat panel
 	if (chattingWith == userId) {
 		updateChat(userId);
+	}
+
+	if ($("#display-chats").css("display") == "block") {
+		returnToChatList();
 	}
 }
 

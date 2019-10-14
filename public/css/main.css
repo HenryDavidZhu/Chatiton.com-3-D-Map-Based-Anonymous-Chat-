@@ -225,6 +225,9 @@ input[type="checkbox"] {
 	vertical-align: center;
 	padding-left: 5px;
 }
+#chat-list #send-msg #send-button:hover {
+	background-color: #00e600;
+}
 #chat-list #send-msg #emoji-button {
 	background: transparent;
 	color: black;
@@ -244,6 +247,7 @@ input[type="checkbox"] {
 	width: 100%;
 	align-items: center;
 }
+
 #notification-modal {
 	display: none;
 	position: absolute;
@@ -256,6 +260,9 @@ input[type="checkbox"] {
 	font-size: 15px;
 	background: white;
 	font-family: Helvetica, Arial, sans-serif;
+}
+#notification-modal a, #notification-modal a:hover, #notification-modal a:active {
+	color: black;
 }
 
 #display-chats {

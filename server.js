@@ -126,7 +126,7 @@ var system = new System(); // Initialize the site's networking system
 var io = socket(server, { pingTimeout: 63000 }); // Automatically disconnect user after 63s of inactivity
 const socketAntiSpam = new SocketAntiSpam({
     banTime:            35,         // Ban time in minutes
-    kickThreshold:      8,          // User gets kicked after this many spam score
+    kickThreshold:      7,          // User gets kicked after this many spam score
     kickTimesBeforeBan: 3,          // User gets banned after this many kicks
     banning:            true,       // Uses temp IP banning after kickTimesBeforeBan
     io:                 io,  // Bind the socket.io variable
