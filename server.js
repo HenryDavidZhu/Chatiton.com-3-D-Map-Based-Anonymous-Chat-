@@ -257,7 +257,7 @@ function userConnect(user) {
     user.on("reportUser", reportUser);
 
     function reportUser(reportData) {
-        var reporterIp = system.idToIp(reportData[0]); // Ip of the user that is reporting another user
+        var reporterIp = system.idToIp[reportData[0]]; // Ip of the user that is reporting another user
         var userId = reportData[1]; // Id of the user that is being reported
 
         var userIpAddress = system.idToIp[userId];
@@ -274,11 +274,17 @@ function userConnect(user) {
             system.ipNumReports[userIpAddress] = new Set();
             system.ipNumReports[userIpAddress].add(reporterIp); 
         }
+
+        console.log("newest system.ipNumReports:");
+        Object.keys(system.ipNumReports).forEach(function(userIpAddress) {
+            console.log(userIpAddress, system.ipNumReports[userIpAddress]);
+        });
     }
 }
 
 // Call functions with created reference 'socketAntiSpam'
 socketAntiSpam.event.on('ban', (socket, data) => {
+    console.log("BANNED USER!");
     io.to(socket.id).emit("ban", true);
 });
 
