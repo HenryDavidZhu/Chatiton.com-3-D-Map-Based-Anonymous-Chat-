@@ -20,70 +20,75 @@
 	</head>
 
 	<body>
-		<div id="login-wrapper">
-			<h1>chat-it-on</h1>
-			<form id="login-form">
-				<input type="text" placeholder="username" pattern=".{4,20}" required title="4 to 20 characters" id="username" /><br>
-				<input type="number" placeholder="age" name="age" min="16" max="75" id="age" /><br>
-				<input type="text" placeholder="short bio" pattern=".{20,100}" required title="45 to 100 characters" id="bio"/><br>
-				<select id="sex">
-					<option value="male" selected>Male</option>
-					<option value="female">Female</option>
-				</select>
-				<input type="text" id="aaifh471" />
-				<input type="text" id="aaifh477" />
-				<input type="submit" value="Start Chatting!" />
-			</form>
+		<div id="display-warning">
+			chatiton.com only supporters browsers at the moment :(... a mobile layout will be coming later!
 		</div>
-
-		<div id="chat-menu">
-			<div class="tab">
-				<button class="tablinks" id="chat-button">Chats</button>
-				<button class="tablinks active" id="city-button">City</button>
-				<div style="clear: both;"></div>
+		<div class="global-content-wrapper">
+			<div id="login-wrapper">
+				<h1>chat-it-on</h1>
+				<form id="login-form">
+					<input type="text" placeholder="username" pattern=".{4,20}" required title="4 to 20 characters" id="username" /><br>
+					<input type="number" placeholder="age" name="age" min="16" max="75" id="age" /><br>
+					<input type="text" placeholder="short bio" pattern=".{20,100}" required title="45 to 100 characters" id="bio"/><br>
+					<select id="sex">
+						<option value="male" selected>Male</option>
+						<option value="female">Female</option>
+					</select>
+					<input type="text" id="aaifh471" />
+					<input type="text" id="aaifh477" />
+					<input type="submit" value="Start Chatting!" />
+				</form>
 			</div>
 
-			<div id="chat-list">
-				<div id="display-chats">
+			<div id="chat-menu">
+				<div class="tab">
+					<button class="tablinks" id="chat-button">Chats</button>
+					<button class="tablinks active" id="city-button">City</button>
+					<div style="clear: both;"></div>
 				</div>
-				<div id="active-chat">
-					<div id="user-bar">
-						user: N/A
+
+				<div id="chat-list">
+					<div id="display-chats">
 					</div>
-					<div id="chat-panel">
-					</div>
-					<form id="send-msg">
-						<div class="form-wrapper">
-							<input type="text" id="msg-text" max="300" required/>
-							<input type="text" id="aaifh4712" />
-							<input type="text" id="aaifh4772" />
-							<button id="send-button"><i class="fa fa-send-o"></i></button>
+					<div id="active-chat">
+						<div id="user-bar">
+							user: N/A
 						</div>
-					</form>
+						<div id="chat-panel">
+						</div>
+						<form id="send-msg">
+							<div class="form-wrapper">
+								<input type="text" id="msg-text" max="300" required/>
+								<input type="text" id="aaifh4712" />
+								<input type="text" id="aaifh4772" />
+								<button id="send-button"><i class="fa fa-send-o"></i></button>
+							</div>
+						</form>
+					</div>
 				</div>
+				<div id="city-list"></div>
 			</div>
-			<div id="city-list"></div>
-		</div>
 
-		<div id="map"></div>
+			<div id="map"></div>
 
-		<div id="intro-modal">
-			<a href="#" class="close" id="close-link">close</a><br><div class="whitespace"></div>
-			<b>chatiton.com</b> is a chatting platform like no other, seamlessly integrating an elegant map-based UI. Messages are NEVER stored on our servers. We just want you to relax and enjoy the experience of talking and meeting new people at the touch of your fingertips. Please use this site <b>responsibly</b>: abusive messages and spam are not tolerated and may result in you being banned from further use of the site.<br><div class="whitespace"></div>
-			
-			<span id="small-text">
-				<label style="word-wrap: break-word">
-					<input type="checkbox" id="displaymodal">
-					Got it! I don't need to see this info again.
-				</label>
-			</span>
-		</div>
+			<div id="intro-modal">
+				<a href="#" class="close" id="close-link">close</a><br><div class="whitespace"></div>
+				<b>chatiton.com</b> is a chatting platform like no other, seamlessly integrating an elegant map-based UI. Messages are NEVER stored on our servers. We just want you to relax and enjoy the experience of talking and meeting new people at the touch of your fingertips. Please use this site <b>responsibly</b>: abusive messages and spam are not tolerated and may result in you being banned from further use of the site.<br><div class="whitespace"></div>
+				
+				<span id="small-text">
+					<label style="word-wrap: break-word">
+						<input type="checkbox" id="displaymodal">
+						Got it! I don't need to see this info again.
+					</label>
+				</span>
+			</div>
 
-		<div id="cover-layer">
-		</div>
+			<div id="cover-layer">
+			</div>
 
-		<div id="notification-modal">
-			You received a message from <b>user</b>.
+			<div id="notification-modal">
+				You received a message from <b>user</b>.
+			</div>
 		</div>
 
 		<!-- a quick script to make #chat-panel occupy the remaining height in #active-chat -->

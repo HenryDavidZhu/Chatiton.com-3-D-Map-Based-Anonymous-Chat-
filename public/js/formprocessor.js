@@ -78,7 +78,10 @@ function downloadTopCities(cityData) {
 
 				// Send a request to the server to get the list of users within that city
 				//retrieveTopKCities(clusterId, cityList, cityRanking);
-				$("#city-list").append("<button id=\"more-cities\" onclick='retrieveTopKCities('" + clusterId + "', " + cityList + ", " + cityRanking + ")'>View more cities in this area</button>");
+				$("#city-list").append("<button id=\"more-cities\">View more cities in this area</button>");
+				$("#more-cities").click(function() {
+					retrieveTopKCities(clusterId, cityList, cityRanking);
+				});
 			});
 			//
 		}

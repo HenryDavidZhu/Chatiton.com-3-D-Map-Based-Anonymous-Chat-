@@ -358,3 +358,16 @@ input[type="checkbox"] {
 	background: rgb(240, 240, 240) !important;
 	color: black !important;
 }
+
+#display-warning {
+	display: none;
+}
+
+@media only screen and (max-width: 830px) {
+	.global-content-wrapper {
+		display: none;
+	}
+	#display-warning {
+		display: block;
+	}
+}
