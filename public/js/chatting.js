@@ -79,11 +79,9 @@ function updateChat(userId) {
 			}
 		}
 
-		console.log($("#chat-list")[0]);
 		var activeChat = document.getElementById("chat-list");
 		activeChat.scrollTop = activeChat.scrollHeight;
 		$('#chat-list').scrollTop($('#chat-list')[0].scrollHeight);
-		console.log($("#chat-list").css("scrollTop"));
 	}
 }
 
@@ -215,10 +213,6 @@ function returnToChatList() {
 			userSexSymbol = "&#9792;";
 		}
 
-		console.log("unopenedChats = " + unopenedChats);
-		console.log("userId = " + userId);
-		console.log("userId in unopenedChats = " + (unopenedChats.includes(userId)));
-
 		if (unopenedChats.includes(userId)) {
 			$("#display-chats").append("<div class='user-panel' id='" + userId + "\'" + "><div class='user-panel-left'" + '><div class="left" onclick="openChat(\'' + userId + '\',\'' 
 				+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
@@ -258,7 +252,6 @@ function receiveMsg(data) {
 	var senderId = data[1].id;
 
 	if (!(unopenedChats.includes(senderId))) {
-		console.log(senderId + " -> unopenedChats");
 		unopenedChats.push(senderId);
 	}
 

@@ -43,7 +43,7 @@ function downloadTopCities(cityData) {
 	var topCityMapping = cityData[1];
 	cityRanking = cityData[2];
 	var pointCount = cityData[3];
-
+	
 	// Populate the city list with a list of the top K cities w/ the most active users
 	var topCityNames = Object.keys(topCityMapping);
 	$("#city-list").empty();
@@ -104,6 +104,8 @@ function retrieveTopKCities(clusterId, cityList, cityRanking) {
 
 // Flies to a city's location on the map given the id and renders the city's users on the left-hand side
 function visitCity(id, cityName) {
+	console.log("visitCity(" + id + ", " + cityName + ")");
+
 	var coordinates = featureById[parseInt(id)].geometry.coordinates;
 	map.flyTo({
 		center: coordinates,
@@ -119,12 +121,42 @@ function visitCity(id, cityName) {
 			var user = cityList[i];
 			var userId = addEscapeChars(user.id);
 			var username = addEscapeChars(user.username);
+			var userAge = addEscapeChars(user.age);
 			var userSex = addEscapeChars(user.sex);
 			var userShortBio = addEscapeChars(user.shortBio);
+			console.log("user = " + user);
 
-			$("#city-list").append("<div class='user-panel' id='" + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
-			+ username + '\',\'' + userSex + '\',\'' + user.age  + '\',\'' + userShortBio + "')\"><b>" + user.username 
-			+ ", " + "(" + user.sex + ", " + user.age + ")</b> <br>" + user.shortBio + "</div>");
+			console.log("----------------------------");
+			console.log("userId = " + userId);
+			console.log("username = " + username);
+			console.log("userAge = " + userAge);
+			console.log("userSex = " + userSex);
+			console.log("userShortBio = " + userShortBio);
+
+			console.log(Object.keys(user));
+
+			var userLastMessage = user.lastMessage;
+			if (userLastMessage) {
+				userLastMessage = addEscapeChars(user.lastMessage);
+			} else {
+				userLastMessage = "Start chatting with " + username + "!";
+			}
+
+			var userSexSymbol = "&#9794;";
+			if (userSex == "female") {
+				userSexSymbol = "&#9792;";
+			}
+
+			if (unopenedChats.includes(userId)) {
+				$("#city-list").append('<div class=\'city-panel\' id=\'' + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+					+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
+					+ "</b>, " + userSexSymbol + ", " + userAge + "<br><b>" + removeEscapeChars(userLastMessage) + "</b></div>");
+			} else {
+				$("#city-list").append('<div class=\'city-panel\ id=\'' + userId + '\' onclick="openChat(\'' + userId + '\',\'' 
+					+ username + '\',\'' + userSex + '\',\'' + userAge  + '\',\'' + userShortBio + "')\"" + '><b>' + username
+					+ "</b>, " + userSexSymbol + ", " + userAge + "<br>" + removeEscapeChars(userLastMessage) + "</div>");			
+			}
+			$("#" + userId).css("text-align", "left");
 		}
 		$("#city-list").append("<div class='city-label'>" + featureById[id].properties.city.split("-")[0] + ", " + featureById[id].properties.country + "</div>");
 	}
@@ -359,7 +391,7 @@ $('#login-form').submit(function (e) {
 						}
 
 						// Send a request to the server to get the list of users within that city
-						retrieveTopKCities(clusterId, cityList, cityRanking, pointCount);
+						retrieveTopKCities(clusterId, cityList, cityRanking);
 
 						// Retrieve the number of user in the cluster
 						var clusterUserCount = clusterToNumCities[clusterId];

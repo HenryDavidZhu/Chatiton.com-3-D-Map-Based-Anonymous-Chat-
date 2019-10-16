@@ -215,7 +215,7 @@ input[type="checkbox"] {
 	padding-right: 2px;
 }
 #chat-list #send-msg #send-button {
-	background: #11bd28;
+	background: black;
 	color: white;
 	outline: 0;
 	border: 0;
@@ -226,7 +226,7 @@ input[type="checkbox"] {
 	padding-left: 5px;
 }
 #chat-list #send-msg #send-button:hover {
-	background-color: #00e600;
+	background-color: rgb(25, 25, 25);
 }
 #chat-list #send-msg #emoji-button {
 	background: transparent;

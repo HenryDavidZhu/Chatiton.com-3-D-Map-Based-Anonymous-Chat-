@@ -146,8 +146,7 @@ function renderCitySizes(cityMap) {
 		// Get the id from the city name [format of city name: [city's name]-[city id] / e.x.: Bellevue-125456 (125456 is the id)]
 		var cityName = cityNameList[i];
 		var id = cityName.split("-")[1]; 
-		featureById[id].properties.numUsers = cityMap[cityName].length; // Test value of 3, change later
-		console.log(cityName + ".numUsers = " + featureById[id].properties.numUsers);
+		featureById[id].properties.numUsers = cityMap[cityName].length; 
 	}
 
 	map.getSource("cities").setData(citiesJSON); // Set the updated GeoJSON
