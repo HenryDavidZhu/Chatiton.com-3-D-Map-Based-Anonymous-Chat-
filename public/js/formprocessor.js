@@ -43,6 +43,9 @@ function downloadTopCities(cityData) {
 	var topCityMapping = cityData[1];
 	cityRanking = cityData[2];
 	var pointCount = cityData[3];
+
+	console.log("topCityMapping: ");
+	console.log(topCityMapping);
 	
 	// Populate the city list with a list of the top K cities w/ the most active users
 	var topCityNames = Object.keys(topCityMapping);
@@ -80,6 +83,10 @@ function downloadTopCities(cityData) {
 				//retrieveTopKCities(clusterId, cityList, cityRanking);
 				$("#city-list").append("<button id=\"more-cities\">View more cities in this area</button>");
 				$("#more-cities").click(function() {
+					console.log("retrieveTopKCities parameters (clusterId, cityList, cityRanking)");
+					console.log("clusterId = " + clusterId);
+					console.log("cityList = " + cityList);
+					console.log("cityRanking = " + cityRanking);
 					retrieveTopKCities(clusterId, cityList, cityRanking);
 				});
 			});
@@ -391,6 +398,10 @@ $('#login-form').submit(function (e) {
 						}
 
 						// Send a request to the server to get the list of users within that city
+						console.log("retrieveTopKCities parameters (clusterId, cityList, cityRanking)");
+						console.log("clusterId = " + clusterId);
+						console.log("cityList = " + cityList);
+						console.log("cityRanking = " + cityRanking);
 						retrieveTopKCities(clusterId, cityList, cityRanking);
 
 						// Retrieve the number of user in the cluster
