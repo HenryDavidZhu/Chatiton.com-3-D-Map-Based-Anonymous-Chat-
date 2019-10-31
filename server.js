@@ -347,4 +347,4 @@ socketAntiSpam.event.on('spamscore', (socket, data) => {
 
   // If you want the spamscore you can get it via:
   console.log(socket.id + ": " + data.score);
-})
+}) 
