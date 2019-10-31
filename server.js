@@ -316,7 +316,6 @@ function userConnect(user) {
 
         console.log("system.idToUser.length = " + Object.keys(system.idToUser).length);
 
-        $("#chat-list").empty();
         for (var id in system.idToUser) {
             randomUsers.push(system.idToUser[id]);
             nCounter++;
