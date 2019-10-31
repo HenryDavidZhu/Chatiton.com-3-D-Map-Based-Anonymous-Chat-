@@ -26,13 +26,14 @@ app.post('/pusher/auth', function(req, res) {
 });
 
 // Defines a connected user, given the following properties: id, username, age, shortBio, sex, city
-function Client(id, username, age, shortBio, sex, city) {
+function Client(id, username, age, shortBio, sex, city, country) {
     this.id = id;
     this.username = username;
     this.age = age;
     this.shortBio = shortBio;
     this.sex = sex;
     this.city = city;
+    this.country = country;
 }
 
 // System: contains all networking logic and data for the site
@@ -40,7 +41,8 @@ function System() {
     this.mapping = {}; // Maps a city to a list of active users (Client object) in that city ([city name] > [Client1, Client2, .... Client N])
     this.idToCity = {}; // Maps a user's id to the city they are chatting from 
     this.idToIp = {}; // Maps a user's socket.id property to their IP address
-    this.idToAddress = {}; // Maps a user's socket.id property to their address (used to negate spam scores)
+    this.idToUser = {}; // Maps the socket.id property of au user to an Object representing that user
+    this.idToAddress = {}; // Maps a user's socket.id property to their IP address (used to negate spam scores)
 
     // Users are kicked if they receive 4 complains 
     // After 4 kicks, users are temp banned for 30 minutes
@@ -161,14 +163,22 @@ function userConnect(user) {
         });
 
         // Retrieve the user's information: username, age, shortBio, sex, and the city the user is in
-    	var username = userInfo[0];
-    	var age = userInfo[1];
-    	var shortBio = userInfo[2];
-    	var sex = userInfo[3];
+        var username = userInfo[0];
+        var age = userInfo[1];
+        var shortBio = userInfo[2];
+        var sex = userInfo[3];
         var city = userInfo[4];
+        var country = userInfo[5];
 
         // Initialize new client
-        var client = new Client(user.id, username, age, shortBio, sex, city);
+        console.log("connecting new user:");
+        console.log("user.id = " + user.id);
+        console.log("username = " + username);
+        console.log("shortBio = " + shortBio);
+        console.log("sex = " + sex);
+        console.log("city = " + city);
+        console.log("country = " + country);
+        var client = new Client(user.id, username, age, shortBio, sex, city, country);
 
         // Map the client to its city in the system's mapping
         if (system.mapping[city]) {
@@ -176,11 +186,10 @@ function userConnect(user) {
         } else {
             system.mapping[city] = [client];
         }
+        system.idToUser[user.id] = client;
 
         // Map the client's id to its city
         system.idToCity[user.id] = city;
-
-        system.monitorSystem(); // Monitor the mapping of cities to their active users
     }
 
     // When user disconnects
@@ -192,6 +201,8 @@ function userConnect(user) {
         var userId = user.id;
         // Remove all associations to the disconnected user server-side
         delete system.idToIp[userId];
+        delete system.idToAddress[userId];
+        delete system.idToUser[userId];
 
         // Retrieve the city of that user
         var userCity = system.idToCity[userId];
@@ -281,30 +292,47 @@ function userConnect(user) {
         var userId = reportData[1]; // Id of the user that is being reported
 
         var userIpAddress = system.idToIp[userId];
-        console.log("user w/ id " + userId + ", ip address = " + userIpAddress + " reported.");
 
         if (userIpAddress in system.ipNumReports) {
             system.ipNumReports[userIpAddress].add(reporterIp);
 
             if (system.ipNumReports[userIpAddress].length == 4) { // Send a signal to the user that he or she is kicked
-                console.log(userIpAddress + " will be kicked.");
                 io.to(userId).emit("reportKick", true);
             }
         } else {
             system.ipNumReports[userIpAddress] = new Set();
             system.ipNumReports[userIpAddress].add(reporterIp); 
         }
+    }
 
-        console.log("newest system.ipNumReports:");
-        Object.keys(system.ipNumReports).forEach(function(userIpAddress) {
-            console.log(userIpAddress, system.ipNumReports[userIpAddress]);
-        });
+    // Retrieves 20 random users
+    user.on("getRandomUsers", retrieveRandomUsers);
+    
+    function retrieveRandomUsers(n) {
+        spamNegation(clientAddress);
+        // n is the number of random users that need to be retrieved
+        nCounter = 0;
+        randomUsers = [];
+
+        console.log("system.idToUser.length = " + Object.keys(system.idToUser).length);
+
+        $("#chat-list").empty();
+        for (var id in system.idToUser) {
+            randomUsers.push(system.idToUser[id]);
+            nCounter++;
+
+            if (nCounter == n) {
+                break;
+            }
+        }
+
+        console.log("randomUsers = " + randomUsers + ", randomUsers.length = " + randomUsers.length);
+        io.to(user.id).emit("randomUsers", randomUsers);
     }
 }
 
 // Call functions with created reference 'socketAntiSpam'
 socketAntiSpam.event.on('ban', (socket, data) => {
-    console.log("BANNED USER!");
     io.to(socket.id).emit("ban", true);
 });
 
