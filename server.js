@@ -171,13 +171,6 @@ function userConnect(user) {
         var country = userInfo[5];
 
         // Initialize new client
-        console.log("connecting new user:");
-        console.log("user.id = " + user.id);
-        console.log("username = " + username);
-        console.log("shortBio = " + shortBio);
-        console.log("sex = " + sex);
-        console.log("city = " + city);
-        console.log("country = " + country);
         var client = new Client(user.id, username, age, shortBio, sex, city, country);
 
         // Map the client to its city in the system's mapping
@@ -314,8 +307,6 @@ function userConnect(user) {
         nCounter = 0;
         randomUsers = [];
 
-        console.log("system.idToUser.length = " + Object.keys(system.idToUser).length);
-
         for (var id in system.idToUser) {
             randomUsers.push(system.idToUser[id]);
             nCounter++;
@@ -325,7 +316,6 @@ function userConnect(user) {
             }
         }
 
-        console.log("randomUsers = " + randomUsers + ", randomUsers.length = " + randomUsers.length);
         io.to(user.id).emit("randomUsers", randomUsers);
     }
 }
@@ -339,6 +329,7 @@ socketAntiSpam.event.on('kick', (socket, data) => {
     io.to(socket.id).emit("kick", true);
 })
 
+/*
 socketAntiSpam.event.on('spamscore', (socket, data) => {
   // We have the socket var that received a new spamscore update
 
@@ -347,4 +338,4 @@ socketAntiSpam.event.on('spamscore', (socket, data) => {
 
   // If you want the spamscore you can get it via:
   console.log(socket.id + ": " + data.score);
-}) 
+})*/
