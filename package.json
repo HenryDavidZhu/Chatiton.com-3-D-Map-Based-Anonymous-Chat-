@@ -1,0 +1,25 @@
+{
+  "name": "chatiton",
+  "version": "1.0.0",
+  "description": "chatting website w/ map-based UI",
+  "main": "server.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.1.0",
+    "express": "^4.17.1",
+    "socket-anti-spam": "^2.0.0",
+    "socketio": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://mindofaballerheartofascholar@bitbucket.org/mindofaballerheartofascholar/chatiton.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/mindofaballerheartofascholar/chatiton#readme"
+}
